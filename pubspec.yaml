@@ -1,0 +1,43 @@
+name: gaamride
+description: Village-based transport app to find and contact Gaam Saathi.
+publish_to: none
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  firebase_core: ^3.13.0
+  cloud_firestore: ^5.6.6
+  firebase_auth: ^5.5.2
+  google_sign_in: ^6.2.1
+  google_maps_flutter: ^2.9.0
+  geolocator: ^13.0.2
+  geoflutterfire_plus: ^0.0.14
+  permission_handler: ^11.3.1
+  geocoding: ^3.0.0
+  flutter_polyline_points: ^2.1.0
+  url_launcher: ^6.3.1
+  firebase_messaging: ^15.2.10
+  flutter_local_notifications: ^21.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.13.1
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/
+
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/logo.png"
+  min_sdk_android: 21
+  adaptive_icon_background: "#ffffff"
+  adaptive_icon_foreground: "assets/logo.png"

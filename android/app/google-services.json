@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "464570240319",
+    "project_id": "gaamride",
+    "storage_bucket": "gaamride.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:464570240319:android:6b2209d382ff2f35dc978a",
+        "android_client_info": {
+          "package_name": "com.example.gaamride"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "464570240319-b1kv4ce6ke1gj8529ngo2epavs2q8rjc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.gaamride",
+            "certificate_hash": "ad625adf251eaee70339d7fc2320d4762ecc4769"
+          }
+        },
+        {
+          "client_id": "464570240319-kpf90q9avjcftqdkrcke9e2opoj1m2nc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQy_Ong62n2ujYi2EwOe6mwe3_eK4erXc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "464570240319-kpf90q9avjcftqdkrcke9e2opoj1m2nc.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "464570240319-22jso4tjd0ldr1cmd42b9lqcds3ru8j2.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.gaamride"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
