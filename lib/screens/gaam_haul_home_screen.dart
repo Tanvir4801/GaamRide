@@ -10,6 +10,7 @@ import '../models/booking_models.dart';
 import '../services/booking_service.dart';
 import '../services/location_service.dart';
 import '../utils/constants.dart';
+import '../utils/fare_calculator.dart';
 import 'booking_search_screen.dart';
 import 'vehicle_owner_dashboard.dart';
 import 'vehicle_register_screen.dart';
@@ -23,6 +24,7 @@ class GaamHaulHomeScreen extends StatefulWidget {
 
 class _GaamHaulHomeScreenState extends State<GaamHaulHomeScreen> {
   static const Color _orange = Color(0xFFE65100);
+  static const Color _orangeSurface = Color(0xFFFBE9E7);
 
   final TextEditingController _loadDescriptionController =
       TextEditingController();
@@ -38,20 +40,20 @@ class _GaamHaulHomeScreenState extends State<GaamHaulHomeScreen> {
 
   String? _selectedVehicleType;
   String? _selectedDuration;
-  bool _searched = false;
   bool _isSearching = false;
 
-  static const Map<String, String> _vehicleTypeLabels = {
-    'mini_tempo': '🚛 મિની ટેમ્પો',
-    'pickup': '🚜 પિકઅપ ટ્રક',
-    'tractor': '🚜 ટ્રેક્ટર',
+  static const Map<String, Map<String, String>> _vehicleTypeInfo = {
+    'mini_tempo': {'label': 'મિની ટેમ્પો', 'sublabel': 'Mini Tempo', 'icon': '🚚'},
+    'pickup': {'label': 'પિકઅપ ટ્રક', 'sublabel': 'Pickup Truck', 'icon': '🛻'},
+    'tractor': {'label': 'ટ્રેક્ટર', 'sublabel': 'Tractor', 'icon': '🚜'},
+    'truck_407': {'label': '407 ટ્રક', 'sublabel': '407 Truck', 'icon': '🚛'},
   };
 
-  static const Map<String, String> _durationLabels = {
-    '1_hour': '1 કલાક',
-    '2_hours': '2 કલાક',
-    'half_day': 'અર્ધો દિવસ',
-    'full_day': 'આખો દિવસ',
+  static const Map<String, Map<String, String>> _durationInfo = {
+    '1_hour': {'label': '1 કલાક', 'sublabel': '1 hour'},
+    '2_hours': {'label': '2 કલાક', 'sublabel': '2 hours'},
+    'half_day': {'label': 'અર્ધો દિવસ', 'sublabel': 'Half day (4h)'},
+    'full_day': {'label': 'આખો દિવસ', 'sublabel': 'Full day (8h)'},
   };
 
   @override
@@ -68,31 +70,23 @@ class _GaamHaulHomeScreenState extends State<GaamHaulHomeScreen> {
   }
 
   Future<void> _fetchCurrentLocation() async {
-    setState(() {
-      _isGettingLocation = true;
-    });
-
+    setState(() => _isGettingLocation = true);
     try {
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         if (!mounted) return;
-        setState(() {
-          _isGettingLocation = false;
-        });
+        setState(() => _isGettingLocation = false);
         return;
       }
 
-      var permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
+      var perm = await Geolocator.checkPermission();
+      if (perm == LocationPermission.denied) {
+        perm = await Geolocator.requestPermission();
       }
-
-      if (permission == LocationPermission.denied ||
-          permission == LocationPermission.deniedForever) {
+      if (perm == LocationPermission.denied ||
+          perm == LocationPermission.deniedForever) {
         if (!mounted) return;
-        setState(() {
-          _isGettingLocation = false;
-        });
+        setState(() => _isGettingLocation = false);
         return;
       }
 
@@ -100,27 +94,21 @@ class _GaamHaulHomeScreenState extends State<GaamHaulHomeScreen> {
         locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
       );
 
-      final currentLocation = LatLng(position.latitude, position.longitude);
-
+      final loc = LatLng(position.latitude, position.longitude);
       if (!mounted) return;
       setState(() {
-        _currentLocation = currentLocation;
-        _nearestVillage = LocationService.getNearestVillage(currentLocation);
+        _currentLocation = loc;
+        _nearestVillage = LocationService.getNearestVillage(loc);
         _isGettingLocation = false;
       });
     } catch (_) {
       if (!mounted) return;
-      setState(() {
-        _isGettingLocation = false;
-      });
+      setState(() => _isGettingLocation = false);
     }
   }
 
   Future<void> _checkOwnerRegistration({bool forceOwnerView = false}) async {
-    setState(() {
-      _isCheckingOwner = true;
-    });
-
+    setState(() => _isCheckingOwner = true);
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
@@ -142,9 +130,7 @@ class _GaamHaulHomeScreenState extends State<GaamHaulHomeScreen> {
       setState(() {
         _hasVehicleRegistered = doc.exists;
         _ownerDocId = doc.exists ? user.uid : null;
-        if (doc.exists && forceOwnerView) {
-          _showFarmerView = false;
-        }
+        if (doc.exists && forceOwnerView) _showFarmerView = false;
         _isCheckingOwner = false;
       });
     } catch (_) {
@@ -158,21 +144,19 @@ class _GaamHaulHomeScreenState extends State<GaamHaulHomeScreen> {
   }
 
   String _locationLabel() {
-    if (_isGettingLocation) {
-      return 'Detecting... / શોધી રહ્યા છીએ...';
+    if (_isGettingLocation) return 'Detecting... / શોધી રહ્યા છીએ...';
+    if (_nearestVillage != null) {
+      return '${_nearestVillage!.nameGu} (${_nearestVillage!.name})';
     }
-
-    final nearestVillage = _nearestVillage;
-    if (nearestVillage != null) {
-      return '${nearestVillage.nameGu} (${nearestVillage.name})';
+    if (_currentLocation != null) {
+      return '${_currentLocation!.latitude.toStringAsFixed(4)}, ${_currentLocation!.longitude.toStringAsFixed(4)}';
     }
+    return 'Location unavailable / સ્થાન ઉપલબ્ધ નથી';
+  }
 
-    final currentLocation = _currentLocation;
-    if (currentLocation == null) {
-      return 'Current location unavailable / સ્થાન ઉપલબ્ધ નથી';
-    }
-
-    return '${currentLocation.latitude.toStringAsFixed(5)}, ${currentLocation.longitude.toStringAsFixed(5)}';
+  double? _fareEstimate() {
+    if (_selectedVehicleType == null || _selectedDuration == null) return null;
+    return FareCalculator.calculateHaulOwnerFare(600, _selectedDuration!);
   }
 
   Future<void> _searchVehicles() async {
@@ -184,19 +168,20 @@ class _GaamHaulHomeScreenState extends State<GaamHaulHomeScreen> {
       );
       return;
     }
+    if (_selectedVehicleType == null || _selectedDuration == null) return;
 
-    if (_selectedVehicleType == null || _selectedDuration == null) {
-      return;
-    }
-
-    setState(() {
-      _isSearching = true;
-      _searched = true;
-    });
+    setState(() => _isSearching = true);
 
     try {
       final userId = FirebaseAuth.instance.currentUser?.uid ??
           'guest_${DateTime.now().millisecondsSinceEpoch}';
+
+      final durationLabelMap = {
+        '1_hour': '1 કલાક',
+        '2_hours': '2 કલાક',
+        'half_day': 'અર્ધો દિવસ',
+        'full_day': 'આખો દિવસ',
+      };
 
       final result = await BookingService.createBookingAndDispatch(
         input: CreateBookingInput(
@@ -206,16 +191,14 @@ class _GaamHaulHomeScreenState extends State<GaamHaulHomeScreen> {
           pickupLng: _currentLocation!.longitude,
           destinationVillage: _nearestVillage?.name ?? 'Anaval',
           vehicleType: _selectedVehicleType,
-          durationLabel: _durationLabels[_selectedDuration],
+          durationLabel: durationLabelMap[_selectedDuration],
           loadDescription: _loadDescriptionController.text.trim(),
           radiusKm: 10,
         ),
       );
 
       if (!mounted) return;
-      setState(() {
-        _isSearching = false;
-      });
+      setState(() => _isSearching = false);
 
       await Navigator.of(context).push(
         MaterialPageRoute<void>(
@@ -223,33 +206,25 @@ class _GaamHaulHomeScreenState extends State<GaamHaulHomeScreen> {
             bookingId: result.bookingId,
             type: BookingType.haul,
             primaryColor: _orange,
+            pickupLocation: _currentLocation,
+            destinationVillage: _nearestVillage?.name,
           ),
         ),
       );
-      if (!mounted) return;
-      setState(() {
-        _searched = false;
-      });
     } on NoDriversFoundException {
       if (!mounted) return;
-      setState(() {
-        _isSearching = false;
-        _searched = true;
-      });
+      setState(() => _isSearching = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('અત્યારે આ વિસ્તારમાં કોઈ વાહન ઉપલબ્ધ નથી'),
+          content: Text('આ વિસ્તારમાં કોઈ વાહન ઉપલબ્ધ નથી / No vehicles available nearby'),
         ),
       );
     } catch (_) {
       if (!mounted) return;
-      setState(() {
-        _isSearching = false;
-        _searched = true;
-      });
+      setState(() => _isSearching = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('વાહન શોધવામાં નિષ્ફળ / Failed to search vehicles'),
+          content: Text('વાહન શોધવામાં ભૂલ / Failed to search vehicles'),
         ),
       );
     }
@@ -259,138 +234,43 @@ class _GaamHaulHomeScreenState extends State<GaamHaulHomeScreen> {
     final result = await Navigator.of(context).push<bool>(
       MaterialPageRoute<bool>(builder: (_) => const VehicleRegisterScreen()),
     );
-
-    if (result == true) {
-      await _checkOwnerRegistration(forceOwnerView: true);
-    }
+    if (result == true) await _checkOwnerRegistration(forceOwnerView: true);
   }
 
   Future<void> _addTestVehicles() async {
     if (!kDebugMode) return;
-
     try {
       final testVehicles = [
-        {
-          'docId': 'test_haul_vehicle_1',
-          'ownerId': 'test_owner_1',
-          'ownerName': 'Ramesh Patel',
-          'phone': '9876543210',
-          'vehicleType': 'mini_tempo',
-          'capacity': '500kg',
-          'ratePerHour': 600,
-          'isAvailable': true,
-          'position': GeoFirePoint(const GeoPoint(20.8480, 73.2350)),
-          'villageName': 'Kos',
-        },
-        {
-          'docId': 'test_haul_vehicle_2',
-          'ownerId': 'test_owner_2',
-          'ownerName': 'Suresh Desai',
-          'phone': '9876543211',
-          'vehicleType': 'pickup',
-          'capacity': '1000kg',
-          'ratePerHour': 800,
-          'isAvailable': true,
-          'position': GeoFirePoint(const GeoPoint(20.8550, 73.2580)),
-          'villageName': 'Tarkani',
-        },
-        {
-          'docId': 'test_haul_vehicle_3',
-          'ownerId': 'test_owner_3',
-          'ownerName': 'Bharat Chaudhary',
-          'phone': '9876543212',
-          'vehicleType': 'tractor',
-          'capacity': '2000kg',
-          'ratePerHour': 500,
-          'isAvailable': true,
-          'position': GeoFirePoint(const GeoPoint(20.8180, 73.2280)),
-          'villageName': 'Angaldhara',
-        },
+        {'docId': 'test_haul_v1', 'ownerId': 'test_owner_1', 'ownerName': 'Ramesh Patel', 'phone': '9876543210', 'vehicleType': 'mini_tempo', 'capacity': '500kg', 'ratePerHour': 600, 'isAvailable': true, 'lat': 20.8480, 'lng': 73.2350, 'villageName': 'Kos'},
+        {'docId': 'test_haul_v2', 'ownerId': 'test_owner_2', 'ownerName': 'Suresh Desai',  'phone': '9876543211', 'vehicleType': 'pickup',    'capacity': '1000kg','ratePerHour': 800, 'isAvailable': true, 'lat': 20.8550, 'lng': 73.2580, 'villageName': 'Tarkani'},
+        {'docId': 'test_haul_v3', 'ownerId': 'test_owner_3', 'ownerName': 'Bharat Chaudhary','phone': '9876543212', 'vehicleType': 'tractor',   'capacity': '2000kg','ratePerHour': 500, 'isAvailable': true, 'lat': 20.8180, 'lng': 73.2280, 'villageName': 'Angaldhara'},
       ];
 
       final batch = FirebaseFirestore.instance.batch();
-      for (final vehicle in testVehicles) {
+      for (final v in testVehicles) {
+        final geoPoint = GeoFirePoint(GeoPoint(v['lat'] as double, v['lng'] as double));
         final ref = FirebaseFirestore.instance
             .collection('haul_vehicles')
-            .doc(vehicle['docId']! as String);
-
+            .doc(v['docId'] as String);
         batch.set(ref, {
-          'ownerId': vehicle['ownerId'],
-          'ownerName': vehicle['ownerName'],
-          'phone': vehicle['phone'],
-          'vehicleType': vehicle['vehicleType'],
-          'capacity': vehicle['capacity'],
-          'ratePerHour': vehicle['ratePerHour'],
-          'isAvailable': vehicle['isAvailable'],
-          'position': (vehicle['position']! as GeoFirePoint).data,
-          'villageName': vehicle['villageName'],
+          'ownerId': v['ownerId'], 'ownerName': v['ownerName'], 'phone': v['phone'],
+          'vehicleType': v['vehicleType'], 'capacity': v['capacity'],
+          'ratePerHour': v['ratePerHour'], 'isAvailable': v['isAvailable'],
+          'position': geoPoint.data, 'villageName': v['villageName'],
           'updatedAt': FieldValue.serverTimestamp(),
-          'createdAt': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
       }
-
       await batch.commit();
-
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Test vehicles added in Firestore'),
-        ),
+        const SnackBar(content: Text('Test vehicles added!')),
       );
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to add test vehicles'),
-        ),
+        const SnackBar(content: Text('Failed to add test vehicles')),
       );
     }
-  }
-
-  Widget _buildLocationCard() {
-    return Card(
-      elevation: 0,
-      child: Padding(
-        padding: const EdgeInsets.all(AppSizes.defaultPadding),
-        child: Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: _orange.withValues(alpha: 0.12),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.location_pin, color: _orange),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'તમારું સ્થાન / Your Location',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textSecondary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    _locationLabel(),
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   Widget _buildVehicleTypeSelector() {
@@ -399,40 +279,60 @@ class _GaamHaulHomeScreenState extends State<GaamHaulHomeScreen> {
       children: [
         const Text(
           'વાહન પ્રકાર / Vehicle Type',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
         ),
-        const SizedBox(height: 8),
-        Row(
-          children: _vehicleTypeLabels.entries.map((entry) {
+        const SizedBox(height: 10),
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 10,
+          childAspectRatio: 2.5,
+          children: _vehicleTypeInfo.entries.map((entry) {
             final isSelected = _selectedVehicleType == entry.key;
-            return Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(12),
-                  onTap: () => setState(() => _selectedVehicleType = entry.key),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? _orange.withValues(alpha: 0.10)
-                          : Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isSelected ? _orange : Colors.black26,
-                        width: isSelected ? 2 : 1,
-                      ),
-                    ),
-                    child: Text(
-                      entry.value,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: isSelected ? _orange : AppColors.textPrimary,
-                      ),
-                    ),
+            final info = entry.value;
+            return GestureDetector(
+              onTap: () => setState(() => _selectedVehicleType = entry.key),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                decoration: BoxDecoration(
+                  color: isSelected ? _orangeSurface : Colors.white,
+                  borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
+                  border: Border.all(
+                    color: isSelected ? _orange : AppColors.border,
+                    width: isSelected ? 2 : 1,
                   ),
+                ),
+                child: Row(
+                  children: [
+                    Text(info['icon']!, style: const TextStyle(fontSize: 20)),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            info['label']!,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: isSelected ? _orange : AppColors.textPrimary,
+                            ),
+                          ),
+                          Text(
+                            info['sublabel']!,
+                            style: const TextStyle(
+                              fontSize: 10,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             );
@@ -447,24 +347,51 @@ class _GaamHaulHomeScreenState extends State<GaamHaulHomeScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'કેટલા સમય માટે? / Duration',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          'સમય / Duration',
+          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
         Wrap(
           spacing: 8,
           runSpacing: 8,
-          children: _durationLabels.entries.map((entry) {
+          children: _durationInfo.entries.map((entry) {
             final isSelected = _selectedDuration == entry.key;
-            return ChoiceChip(
-              selected: isSelected,
-              label: Text(entry.value),
-              selectedColor: _orange,
-              labelStyle: TextStyle(
-                color: isSelected ? Colors.white : AppColors.textPrimary,
-                fontWeight: FontWeight.w700,
+            final info = entry.value;
+            return GestureDetector(
+              onTap: () => setState(() => _selectedDuration = entry.key),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: isSelected ? _orange : Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isSelected ? _orange : AppColors.border,
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      info['label']!,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                        color: isSelected ? Colors.white : AppColors.textPrimary,
+                      ),
+                    ),
+                    Text(
+                      info['sublabel']!,
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: isSelected
+                            ? Colors.white70
+                            : AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              onSelected: (_) => setState(() => _selectedDuration = entry.key),
             );
           }).toList(),
         ),
@@ -473,88 +400,228 @@ class _GaamHaulHomeScreenState extends State<GaamHaulHomeScreen> {
   }
 
   Widget _buildFarmerBody() {
+    final fareEstimate = _fareEstimate();
+    final canSearch = _selectedVehicleType != null && _selectedDuration != null;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppSizes.defaultPadding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildLocationCard(),
-          const SizedBox(height: 12),
+          // Location card
+          Card(
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppSizes.cardRadius),
+              side: const BorderSide(color: AppColors.border),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: _orangeSurface,
+                      shape: BoxShape.circle,
+                    ),
+                    child: _isGettingLocation
+                        ? const Padding(
+                            padding: EdgeInsets.all(10),
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: _orange,
+                            ),
+                          )
+                        : const Icon(Icons.location_pin, color: _orange),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Pickup / ઉઠાવ સ્થાન',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          _locationLabel(),
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: _fetchCurrentLocation,
+                    icon: const Icon(Icons.refresh, size: 20, color: AppColors.textSecondary),
+                    padding: EdgeInsets.zero,
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
           _buildVehicleTypeSelector(),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           _buildDurationSelector(),
-          const SizedBox(height: 12),
+
+          const SizedBox(height: 16),
+
+          // Load description
           TextField(
             controller: _loadDescriptionController,
             maxLines: 2,
             decoration: InputDecoration(
               hintText:
-                  'શું લઈ જવાનું છે? (વૈકલ્પિક) / What to carry? (optional)\nશાકભાજી, ખાતર, સામાન...',
+                  'શું લઈ જવાનું છે? (વૈકલ્પિક) / What to carry? (optional)\nShakbhaji, fertilizer, goods...',
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
+                borderSide: const BorderSide(color: AppColors.border),
               ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
+                borderSide: const BorderSide(color: _orange, width: 2),
+              ),
+              contentPadding: const EdgeInsets.all(12),
             ),
           ),
+
+          // Fare estimate
+          if (fareEstimate != null) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: _orangeSurface,
+                borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.currency_rupee, color: _orange, size: 18),
+                  const SizedBox(width: 6),
+                  const Text(
+                    'Estimated / અંદાજ:',
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                  ),
+                  const Spacer(),
+                  Text(
+                    '₹${fareEstimate.toStringAsFixed(0)}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 18,
+                      color: _orange,
+                    ),
+                  ),
+                  const Text(
+                    ' (paid directly to owner)',
+                    style: TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+          ],
+
           const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: (_selectedVehicleType != null && _selectedDuration != null)
-                ? _searchVehicles
-                : null,
+
+          ElevatedButton.icon(
+            onPressed: (canSearch && !_isSearching) ? _searchVehicles : null,
+            icon: _isSearching
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Icon(Icons.search),
+            label: const Text(
+              'વાહન શોધો / Find Vehicle',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            ),
             style: ElevatedButton.styleFrom(
               backgroundColor: _orange,
               foregroundColor: Colors.white,
+              minimumSize: const Size.fromHeight(AppSizes.largeButtonHeight),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
+              ),
+              disabledBackgroundColor: _orange.withValues(alpha: 0.4),
+              disabledForegroundColor: Colors.white,
             ),
-            child: const Text('વાહન શોધો / Find Vehicle'),
           ),
+
           if (kDebugMode) ...[
             const SizedBox(height: 8),
-            OutlinedButton(
+            OutlinedButton.icon(
               onPressed: _addTestVehicles,
-              child: const Text('Add Test Vehicles'),
+              icon: const Icon(Icons.bug_report, size: 18),
+              label: const Text('Add Test Vehicles (Debug)'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.textSecondary,
+                side: const BorderSide(color: AppColors.border),
+              ),
             ),
           ],
-          const SizedBox(height: 16),
-          if (_isSearching)
-            const Center(child: CircularProgressIndicator())
-          else if (_searched)
-            const Column(
-              children: [
-                Text(
-                  'વાહન મળ્યું નથી, ફરી પ્રયત્ન કરો',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontWeight: FontWeight.w700),
-                ),
-                SizedBox(height: 6),
-                Text(
-                  'No vehicle available in your area right now',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: AppColors.textSecondary),
-                ),
-              ],
-            )
-          else
-            const Text(
-              'વાહન પસંદ કરીને શોધો / Choose options and find vehicle',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.textSecondary),
-            ),
-          const SizedBox(height: 18),
+
+          const SizedBox(height: 20),
+
           if (!_hasVehicleRegistered)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Flexible(
-                  child: Text(
-                    'શું તમારી પાસે ટેમ્પો/ટ્રક છે? નોંધો →',
-                    style: TextStyle(color: AppColors.textSecondary),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: _orangeSurface,
+                borderRadius: BorderRadius.circular(AppSizes.cardRadius),
+                border: Border.all(color: _orange.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.local_shipping, color: _orange, size: 28),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'વાહન માલિક? / Own a vehicle?',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                          ),
+                        ),
+                        Text(
+                          'Register to earn with GaamHaul',
+                          style: TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                TextButton(
-                  onPressed: _openRegisterScreen,
-                  child: const Text('વાહન નોંધો / Register'),
-                ),
-              ],
+                  TextButton(
+                    onPressed: _openRegisterScreen,
+                    style: TextButton.styleFrom(foregroundColor: _orange),
+                    child: const Text(
+                      'નોંધો / Register',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                ],
+              ),
             ),
+
+          const SizedBox(height: 20),
         ],
       ),
     );
@@ -567,7 +634,7 @@ class _GaamHaulHomeScreenState extends State<GaamHaulHomeScreen> {
         appBar: AppBar(
           backgroundColor: _orange,
           foregroundColor: Colors.white,
-          title: const Text('GaamHaul'),
+          title: const Text('GaamHaul', style: TextStyle(fontWeight: FontWeight.w800)),
         ),
         body: const Center(child: CircularProgressIndicator()),
       );
@@ -576,11 +643,7 @@ class _GaamHaulHomeScreenState extends State<GaamHaulHomeScreen> {
     if (_hasVehicleRegistered && !_showFarmerView && _ownerDocId != null) {
       return VehicleOwnerDashboard(
         vehicleDocId: _ownerDocId!,
-        onSwitchToSearch: () {
-          setState(() {
-            _showFarmerView = true;
-          });
-        },
+        onSwitchToSearch: () => setState(() => _showFarmerView = true),
       );
     }
 
@@ -588,17 +651,24 @@ class _GaamHaulHomeScreenState extends State<GaamHaulHomeScreen> {
       appBar: AppBar(
         backgroundColor: _orange,
         foregroundColor: Colors.white,
-        title: const Text('GaamHaul'),
+        elevation: 0,
+        title: const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('GaamHaul', style: TextStyle(fontWeight: FontWeight.w800)),
+            Text(
+              'Farm & Village Logistics',
+              style: TextStyle(fontSize: 11, color: Colors.white70),
+            ),
+          ],
+        ),
         actions: [
           if (_hasVehicleRegistered)
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  _showFarmerView = false;
-                });
-              },
-              child: const Text(
-                'ડેશબોર્ડ / Dashboard',
+            TextButton.icon(
+              onPressed: () => setState(() => _showFarmerView = false),
+              icon: const Icon(Icons.dashboard, color: Colors.white, size: 18),
+              label: const Text(
+                'Dashboard',
                 style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
               ),
             ),

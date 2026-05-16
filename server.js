@@ -9,217 +9,224 @@ const html = `<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GaamRide - Village Transport App</title>
+  <title>GaamRide — Village Transport App</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #f0f4f8;
-      color: #1a202c;
-      min-height: 100vh;
-    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #F5F5F5; color: #212121; }
     header {
-      background: linear-gradient(135deg, #2d6a4f 0%, #40916c 100%);
-      color: white;
-      padding: 2rem;
-      text-align: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 50%, #388E3C 100%);
+      color: white; padding: 2.5rem 1.5rem; text-align: center;
     }
-    header h1 { font-size: 2.5rem; font-weight: 700; letter-spacing: -1px; }
-    header p { margin-top: 0.5rem; font-size: 1.1rem; opacity: 0.85; }
+    header h1 { font-size: 3rem; font-weight: 900; letter-spacing: -2px; }
+    header .tagline { margin-top: 6px; font-size: 1.1rem; opacity: 0.85; }
+    .badges { margin-top: 12px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
     .badge {
-      display: inline-block;
-      background: rgba(255,255,255,0.2);
-      border-radius: 20px;
-      padding: 4px 14px;
-      font-size: 0.85rem;
-      margin-top: 0.75rem;
+      display: inline-block; background: rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 4px 14px; font-size: 0.82rem; border: 1px solid rgba(255,255,255,0.3);
     }
-    main { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+    main { max-width: 960px; margin: 2rem auto; padding: 0 1rem 3rem; }
     .card {
-      background: white;
-      border-radius: 12px;
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      background: white; border-radius: 16px; padding: 1.5rem;
+      margin-bottom: 1.5rem; box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+      border: 1px solid #E0E0E0;
     }
     .card h2 {
-      font-size: 1.2rem;
-      font-weight: 600;
-      color: #2d6a4f;
-      margin-bottom: 1rem;
-      padding-bottom: 0.5rem;
-      border-bottom: 2px solid #d8f3dc;
+      font-size: 1.15rem; font-weight: 700; color: #2E7D32;
+      margin-bottom: 1rem; padding-bottom: 0.5rem;
+      border-bottom: 2px solid #E8F5E9;
     }
-    .tech-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: 0.75rem;
-    }
-    .tech-item {
-      background: #f7fdf9;
-      border: 1px solid #d8f3dc;
-      border-radius: 8px;
-      padding: 0.75rem 1rem;
-      text-align: center;
-      font-size: 0.9rem;
-    }
-    .tech-item strong { display: block; color: #1b4332; font-size: 0.75rem; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
-    .roles-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-      gap: 1rem;
-    }
-    .role-card {
-      border-radius: 8px;
-      padding: 1rem;
-    }
-    .role-card.customer { background: #ebf8ff; border-left: 4px solid #3182ce; }
-    .role-card.saathi { background: #f0fff4; border-left: 4px solid #38a169; }
-    .role-card.owner { background: #fffaf0; border-left: 4px solid #dd6b20; }
-    .role-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .card h2.orange { color: #E65100; border-bottom-color: #FBE9E7; }
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.75rem; }
+    .grid-4 { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.75rem; }
+    .tech-item { background: #F9FBE7; border: 1px solid #E8F5E9; border-radius: 10px; padding: 0.75rem 1rem; text-align: center; font-size: 0.88rem; }
+    .tech-item strong { display: block; color: #1B5E20; font-size: 0.72rem; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .role-card { border-radius: 12px; padding: 1rem; }
+    .role-card.green { background: #E8F5E9; border-left: 4px solid #2E7D32; }
+    .role-card.orange { background: #FBE9E7; border-left: 4px solid #E65100; }
+    .role-card.blue { background: #E3F2FD; border-left: 4px solid #1565C0; }
+    .role-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; }
     .role-card ul { list-style: none; font-size: 0.875rem; color: #4a5568; }
+    .role-card ul li { padding: 2px 0; }
     .role-card ul li::before { content: "→ "; color: #718096; }
-    .structure-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 0.75rem;
-    }
-    .dir-item {
-      background: #f8f9fa;
-      border-radius: 8px;
-      padding: 0.75rem;
-      font-size: 0.875rem;
-    }
-    .dir-item code {
-      display: block;
-      font-family: monospace;
-      font-size: 0.85rem;
-      color: #2d6a4f;
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-    .info-box {
-      background: #fff3cd;
-      border: 1px solid #ffc107;
-      border-radius: 8px;
-      padding: 1rem 1.25rem;
-      font-size: 0.9rem;
-      color: #856404;
-    }
-    .info-box strong { display: block; margin-bottom: 4px; }
-    .screens-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 0.5rem;
-    }
-    .screen-item {
-      background: #f8f9fa;
-      border-radius: 6px;
-      padding: 0.5rem 0.75rem;
-      font-family: monospace;
-      font-size: 0.82rem;
-      color: #2d3748;
-    }
+    .feature-card { background: #F5F5F5; border-radius: 10px; padding: 1rem; }
+    .feature-card .icon { font-size: 1.5rem; margin-bottom: 6px; }
+    .feature-card h4 { font-size: 0.92rem; font-weight: 700; margin-bottom: 4px; }
+    .feature-card p { font-size: 0.82rem; color: #757575; line-height: 1.4; }
+    .screen-item { background: #F5F5F5; border-radius: 8px; padding: 0.5rem 0.75rem; font-family: monospace; font-size: 0.82rem; color: #2d3748; }
+    .note { background: #E8F5E9; border: 1px solid #A5D6A7; border-radius: 10px; padding: 1rem 1.25rem; font-size: 0.88rem; color: #1B5E20; }
+    .note strong { display: block; margin-bottom: 4px; font-weight: 800; }
+    .village-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .village-chip { background: #E8F5E9; border: 1px solid #A5D6A7; border-radius: 20px; padding: 4px 14px; font-size: 0.85rem; color: #1B5E20; font-weight: 600; }
   </style>
 </head>
 <body>
   <header>
-    <h1>🚗 GaamRide</h1>
-    <p>Village-based Transport Application</p>
-    <span class="badge">Flutter + Firebase Mobile App</span>
+    <div style="font-size:3.5rem; margin-bottom:8px">🛵</div>
+    <h1>GaamRide</h1>
+    <p class="tagline">ગામડાઓ જોડવા · Connecting Villages · Mahuva Taluka, Surat</p>
+    <div class="badges">
+      <span class="badge">Flutter Mobile App</span>
+      <span class="badge">Firebase Backend</span>
+      <span class="badge">Real-time Tracking</span>
+      <span class="badge">OTP Verified Rides</span>
+      <span class="badge">Parallel Updates</span>
+    </div>
   </header>
   <main>
-    <div class="info-box">
-      <strong>Note: This is a Flutter mobile application</strong>
-      Flutter apps are built for Android/iOS devices. This page is a project overview. To run the app, use <code>flutter run</code> with a connected device or emulator.
+    <div class="note">
+      <strong>📱 Flutter Mobile Application</strong>
+      This is a Flutter/Dart mobile app built for Android & iOS. This page is the project overview.
+      Run with <code>flutter run</code> on a connected device or Android emulator.
     </div>
 
     <div class="card" style="margin-top:1.5rem">
-      <h2>About GaamRide</h2>
-      <p style="color:#4a5568;line-height:1.6">GaamRide connects local transport providers (<strong>Gaam Saathi</strong>) with customers in rural/village areas. It supports multiple user roles with features for booking rides, real-time tracking, proximity-based driver discovery, and push notifications.</p>
+      <h2>App Overview</h2>
+      <p style="line-height:1.7; color:#4a5568; margin-bottom:1rem">
+        GaamRide is a village-level transport platform for rural Gujarat, connecting customers with
+        <strong>Gaam Saathis</strong> (bike/auto drivers) and <strong>Haul Saathis</strong> (truck/tempo owners)
+        in the Mahuva taluka area of Surat district.
+      </p>
+      <div class="grid-2">
+        <div class="role-card green">
+          <h3>🟢 GaamRide Module</h3>
+          <ul>
+            <li>Person transport (like Rapido)</li>
+            <li>Real-time Saathi tracking with smooth animation</li>
+            <li>OTP verification for ride start</li>
+            <li>Star rating after completion</li>
+          </ul>
+        </div>
+        <div class="role-card orange">
+          <h3>🟠 GaamHaul Module</h3>
+          <ul>
+            <li>Vehicle/tempo booking (like Porter)</li>
+            <li>Mini Tempo, Pickup, Tractor, 407 Truck</li>
+            <li>Duration-based booking (1h to full day)</li>
+            <li>Farm & goods transport</li>
+          </ul>
+        </div>
+      </div>
     </div>
 
     <div class="card">
       <h2>Tech Stack</h2>
-      <div class="tech-grid">
+      <div class="grid-4">
         <div class="tech-item"><strong>Frontend</strong>Flutter (Dart)</div>
-        <div class="tech-item"><strong>Backend</strong>Firebase</div>
         <div class="tech-item"><strong>Database</strong>Cloud Firestore</div>
-        <div class="tech-item"><strong>Auth</strong>Firebase Auth</div>
+        <div class="tech-item"><strong>Auth</strong>Firebase OTP + Google</div>
         <div class="tech-item"><strong>Functions</strong>Node.js 18</div>
         <div class="tech-item"><strong>Maps</strong>Google Maps SDK</div>
-        <div class="tech-item"><strong>Notifications</strong>FCM</div>
-        <div class="tech-item"><strong>Location</strong>Geolocator</div>
+        <div class="tech-item"><strong>Notifications</strong>Firebase FCM</div>
+        <div class="tech-item"><strong>Geolocation</strong>Geoflutterfire+</div>
+        <div class="tech-item"><strong>Storage</strong>Firebase Storage</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>⚡ Core Feature: Parallel Updates</h2>
+      <p style="color:#4a5568; margin-bottom:1rem; line-height:1.6">
+        The app uses <strong>parallel Firestore writes</strong> via <code>Future.wait()</code> to simultaneously
+        update multiple collections when the Saathi's location changes — eliminating serial database bottlenecks.
+      </p>
+      <div class="grid-3">
+        <div class="feature-card">
+          <div class="icon">🗂️</div>
+          <h4>Ride Doc Update</h4>
+          <p>saathiLat, saathiLng, saathiLastUpdate updated in active ride document</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">📍</div>
+          <h4>Saathis Collection</h4>
+          <p>GeoFirePoint position updated in saathis collection for discovery</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">⚡</div>
+          <h4>Simultaneously</h4>
+          <p>Both writes fire in parallel every 5 seconds — not sequentially</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🎯 Ride Tracking (Core Feature)</h2>
+      <div class="grid-3">
+        <div class="feature-card">
+          <div class="icon">🟢</div>
+          <h4>Smooth Marker Animation</h4>
+          <p>20-step linear interpolation over 1 second for fluid Saathi marker movement</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">🔴</div>
+          <h4>Real-time Firestore Listener</h4>
+          <p>Customer's map updates as Saathi's location changes in Firestore</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">🔐</div>
+          <h4>OTP Verification</h4>
+          <p>4-digit OTP ensures Saathi starts ride only after customer confirms identity</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">📊</div>
+          <h4>Status Flow</h4>
+          <p>searching → accepted → arriving → started → completed</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">⭐</div>
+          <h4>Ride Rating</h4>
+          <p>1-5 star rating submitted by customer at ride completion</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">💰</div>
+          <h4>Fare Calculation</h4>
+          <p>₹20 base + ₹8/km, minimum ₹30. Shown before booking.</p>
+        </div>
       </div>
     </div>
 
     <div class="card">
       <h2>User Roles</h2>
-      <div class="roles-grid">
-        <div class="role-card customer">
+      <div class="grid-3">
+        <div class="role-card blue">
           <h3>👤 Customer</h3>
-          <ul>
-            <li>Search for nearby Saathis</li>
-            <li>Book transport rides</li>
-            <li>Track ride in real-time</li>
-            <li>View booking history</li>
-          </ul>
+          <ul><li>Find nearby Saathi</li><li>Book rides or vehicles</li><li>Track in real-time</li><li>Rate after ride</li></ul>
         </div>
-        <div class="role-card saathi">
-          <h3>🚘 Gaam Saathi (Driver)</h3>
-          <ul>
-            <li>Register as transport provider</li>
-            <li>Accept/reject ride requests</li>
-            <li>Manage availability status</li>
-            <li>View earnings & history</li>
-          </ul>
+        <div class="role-card green">
+          <h3>🛵 Gaam Saathi</h3>
+          <ul><li>Online/Offline toggle</li><li>Accept ride requests</li><li>OTP verification</li><li>GPS live updates</li></ul>
         </div>
-        <div class="role-card owner">
-          <h3>🏢 Vehicle Owner</h3>
-          <ul>
-            <li>Register vehicles</li>
-            <li>Manage fleet</li>
-            <li>Track vehicle usage</li>
-            <li>GaamHaul (goods transport)</li>
-          </ul>
+        <div class="role-card orange">
+          <h3>🚛 Haul Saathi</h3>
+          <ul><li>Register vehicle</li><li>Accept haul bookings</li><li>Availability toggle</li><li>Earnings tracking</li></ul>
         </div>
       </div>
     </div>
 
     <div class="card">
-      <h2>App Screens</h2>
-      <div class="screens-list">
-        <div class="screen-item">auth_gate_screen.dart</div>
-        <div class="screen-item">otp_verification_screen.dart</div>
-        <div class="screen-item">role_selection_screen.dart</div>
-        <div class="screen-item">home_screen.dart</div>
-        <div class="screen-item">customer_home_screen.dart</div>
-        <div class="screen-item">booking_search_screen.dart</div>
-        <div class="screen-item">booking_request_screen.dart</div>
-        <div class="screen-item">tracking_screen.dart</div>
-        <div class="screen-item">saathi_dashboard.dart</div>
-        <div class="screen-item">saathi_register_screen.dart</div>
-        <div class="screen-item">vehicle_owner_dashboard.dart</div>
-        <div class="screen-item">vehicle_register_screen.dart</div>
-        <div class="screen-item">gaam_haul_home_screen.dart</div>
-        <div class="screen-item">main_shell.dart</div>
+      <h2>Service Villages</h2>
+      <p style="color:#757575; font-size:0.9rem; margin-bottom:12px">Mahuva Taluka, Surat District, Gujarat — 9 approved villages</p>
+      <div class="village-list">
+        <span class="village-chip">🏘️ Anaval · આણવલ</span>
+        <span class="village-chip">🏘️ Kos · કૉસ</span>
+        <span class="village-chip">🏘️ Tarkani · તારકાણી</span>
+        <span class="village-chip">🏘️ Angaldhara · અંગળધરા</span>
+        <span class="village-chip">🏘️ Dholikuva · ઢોળીકૂવા</span>
+        <span class="village-chip">🏘️ Lakhavadi · લખાવડી</span>
+        <span class="village-chip">🏘️ Unai · ઉનાઈ</span>
+        <span class="village-chip">🏘️ Doldha · ડોળધા</span>
+        <span class="village-chip">🏘️ Kamboya · કાંબોયા</span>
       </div>
     </div>
 
     <div class="card">
-      <h2>Project Structure</h2>
-      <div class="structure-grid">
-        <div class="dir-item"><code>lib/screens/</code>UI screens for all app flows</div>
-        <div class="dir-item"><code>lib/services/</code>Auth, booking, location, notifications</div>
-        <div class="dir-item"><code>lib/models/</code>Data models (booking, saathi, village)</div>
-        <div class="dir-item"><code>lib/widgets/</code>Reusable UI components</div>
-        <div class="dir-item"><code>lib/utils/</code>App constants and themes</div>
-        <div class="dir-item"><code>functions/</code>Firebase Cloud Functions (Node.js)</div>
-        <div class="dir-item"><code>android/</code>Android native configuration</div>
-        <div class="dir-item"><code>ios/</code>iOS native configuration</div>
-        <div class="dir-item"><code>assets/</code>Images and static assets</div>
-        <div class="dir-item"><code>web/</code>Flutter web template</div>
+      <h2>New Screens Added</h2>
+      <div class="grid-4">
+        <div class="screen-item">ride_tracking_screen.dart</div>
+        <div class="screen-item">ride_complete_screen.dart</div>
+        <div class="screen-item">saathi_ride_screen.dart</div>
+        <div class="screen-item">haul_tracking_screen.dart</div>
+        <div class="screen-item">fare_calculator.dart</div>
+        <div class="screen-item">otp_generator.dart</div>
       </div>
     </div>
   </main>

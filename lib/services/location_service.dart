@@ -8,21 +8,22 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../models/village_model.dart';
+import '../utils/constants.dart';
 import 'notification_service.dart';
 
 typedef VillageLocation = VillageModel;
 
 class LocationService {
   static const List<VillageLocation> approvedVillages = [
-    VillageLocation(id: 'anaval', name: 'Anaval', nameGu: 'આણવલ', lat: 20.8306, lng: 73.2469, isActive: true),
-    VillageLocation(id: 'kos', name: 'Kos', nameGu: 'કૉસ', lat: 20.8480, lng: 73.2350, isActive: true),
-    VillageLocation(id: 'tarkani', name: 'Tarkani', nameGu: 'તારકાણી', lat: 20.8550, lng: 73.2580, isActive: true),
-    VillageLocation(id: 'angaldhara', name: 'Angaldhara', nameGu: 'અંગલધરા', lat: 20.8180, lng: 73.2280, isActive: true),
-    VillageLocation(id: 'dholikuva', name: 'Dholikuva', nameGu: 'ઢોળીકૂવા', lat: 20.8650, lng: 73.2800, isActive: true),
-    VillageLocation(id: 'lakhavadi', name: 'Lakhavadi', nameGu: 'લખાવડી', lat: 20.8050, lng: 73.2150, isActive: true),
-    VillageLocation(id: 'unai', name: 'Unai', nameGu: 'ઉનાઈ', lat: 20.8550, lng: 73.2100, isActive: true),
-    VillageLocation(id: 'doldha', name: 'Doldha', nameGu: 'ડોળધા', lat: 20.7950, lng: 73.2600, isActive: true),
-    VillageLocation(id: 'kamboya', name: 'Kamboya', nameGu: 'કાંબોયા', lat: 20.8750, lng: 73.2200, isActive: true),
+    VillageLocation(id: 'anaval',      name: 'Anaval',      nameGu: 'આણવલ',    lat: 20.8306, lng: 73.2469, isActive: true),
+    VillageLocation(id: 'kos',         name: 'Kos',         nameGu: 'કૉસ',     lat: 20.8480, lng: 73.2350, isActive: true),
+    VillageLocation(id: 'tarkani',     name: 'Tarkani',     nameGu: 'તારકાણી', lat: 20.8550, lng: 73.2580, isActive: true),
+    VillageLocation(id: 'angaldhara',  name: 'Angaldhara',  nameGu: 'અંગળધરા', lat: 20.8180, lng: 73.2280, isActive: true),
+    VillageLocation(id: 'dholikuva',   name: 'Dholikuva',   nameGu: 'ઢોળીકૂવા',lat: 20.8650, lng: 73.2800, isActive: true),
+    VillageLocation(id: 'lakhavadi',   name: 'Lakhavadi',   nameGu: 'લખાવડી',  lat: 20.8050, lng: 73.2150, isActive: true),
+    VillageLocation(id: 'unai',        name: 'Unai',        nameGu: 'ઉનાઈ',    lat: 20.8550, lng: 73.2100, isActive: true),
+    VillageLocation(id: 'doldha',      name: 'Doldha',      nameGu: 'ડોળધા',   lat: 20.7950, lng: 73.2600, isActive: true),
+    VillageLocation(id: 'kamboya',     name: 'Kamboya',     nameGu: 'કાંબોયા', lat: 20.8750, lng: 73.2200, isActive: true),
   ];
 
   static const LatLng serviceSouthWest = LatLng(20.780, 73.190);
@@ -47,85 +48,78 @@ class LocationService {
   }
 
   static VillageLocation? getNearestVillage(LatLng point) {
-    VillageLocation? nearestVillage;
-    double bestDistanceMeters = double.infinity;
+    VillageLocation? nearest;
+    double bestDist = double.infinity;
 
-    for (final village in approvedVillages) {
-      final distanceMeters = Geolocator.distanceBetween(
-        point.latitude,
-        point.longitude,
-        village.lat,
-        village.lng,
+    for (final v in approvedVillages) {
+      final d = Geolocator.distanceBetween(
+        point.latitude, point.longitude, v.lat, v.lng,
       );
-
-      if (distanceMeters < bestDistanceMeters) {
-        bestDistanceMeters = distanceMeters;
-        nearestVillage = village;
+      if (d < bestDist) {
+        bestDist = d;
+        nearest = v;
       }
     }
-
-    return nearestVillage;
+    return nearest;
   }
 
-  static String? getNearestVillageName(LatLng point) {
-    return getNearestVillage(point)?.name;
-  }
+  static String? getNearestVillageName(LatLng point) =>
+      getNearestVillage(point)?.name;
 
-  static String? getNearestVillageDisplayName(LatLng point) {
-    return getNearestVillage(point)?.label;
-  }
+  static String? getNearestVillageDisplayName(LatLng point) =>
+      getNearestVillage(point)?.label;
 
   static final GeoCollectionReference<Map<String, dynamic>>
       _saathisGeoCollection = GeoCollectionReference<Map<String, dynamic>>(
-    FirebaseFirestore.instance.collection('saathis'),
+    FirebaseFirestore.instance.collection(AppConstants.saathiCollection),
   );
 
   static StreamSubscription<Position>? _driverPositionSubscription;
 
+  // Active ride tracking timer for periodic parallel updates
+  static Timer? _rideLocationTimer;
+
+  // ─── Permissions ─────────────────────────────────────────────────────────────
+
   static Future<bool> ensureLocationPermission() async {
     final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      return false;
-    }
+    if (!serviceEnabled) return false;
 
     var status = await Permission.locationWhenInUse.status;
     if (status.isDenied || status.isRestricted || status.isLimited) {
       status = await Permission.locationWhenInUse.request();
     }
-
     return status.isGranted;
   }
+
+  // ─── Nearby saathi stream ─────────────────────────────────────────────────────
 
   static Stream<List<DocumentSnapshot<Map<String, dynamic>>>> nearbyAvailableSaathis({
     required LatLng center,
     double radiusInKm = 5.0,
   }) {
-    final centerPoint = GeoFirePoint(GeoPoint(center.latitude, center.longitude));
-
     return _saathisGeoCollection
         .subscribeWithin(
-          center: centerPoint,
+          center: GeoFirePoint(GeoPoint(center.latitude, center.longitude)),
           radiusInKm: radiusInKm,
           field: 'position',
           geopointFrom: (data) {
             final position = data['position'];
             if (position is Map<String, dynamic>) {
               final geopoint = position['geopoint'];
-              if (geopoint is GeoPoint) {
-                return geopoint;
-              }
+              if (geopoint is GeoPoint) return geopoint;
             }
-            throw StateError('Missing geopoint in saathis/{id}/position');
+            throw StateError('Missing geopoint in saathis');
           },
           strictMode: true,
         )
-        .map(
-          (docs) => docs.where((doc) {
-            final data = doc.data();
-            return data != null && (data['isAvailable'] as bool? ?? false);
-          }).toList(),
-        );
+        .map((docs) => docs.where((doc) {
+              final data = doc.data();
+              return data != null && (data['isAvailable'] as bool? ?? false);
+            }).toList());
   }
+
+  // ─── Saathi live location (discovery) ────────────────────────────────────────
 
   static Future<void> upsertSaathiLiveLocation({
     required String saathiId,
@@ -134,17 +128,19 @@ class LocationService {
     required bool isAvailable,
   }) async {
     final geoPoint = GeoFirePoint(GeoPoint(position.latitude, position.longitude));
-
-    await FirebaseFirestore.instance.collection('saathis').doc(saathiId).set(
-      {
-        'position': geoPoint.data,
-        'isAvailable': isAvailable,
-        'lastSeen': FieldValue.serverTimestamp(),
-        'vehicleType': vehicleType,
-        'fcmToken': NotificationService.currentToken,
-      },
-      SetOptions(merge: true),
-    );
+    await FirebaseFirestore.instance
+        .collection(AppConstants.saathiCollection)
+        .doc(saathiId)
+        .set(
+          {
+            'position': geoPoint.data,
+            'isAvailable': isAvailable,
+            'lastSeen': FieldValue.serverTimestamp(),
+            'vehicleType': vehicleType,
+            'fcmToken': NotificationService.currentToken,
+          },
+          SetOptions(merge: true),
+        );
   }
 
   static Future<void> startSaathiLiveLocation({
@@ -152,9 +148,7 @@ class LocationService {
     required String vehicleType,
   }) async {
     final hasPermission = await ensureLocationPermission();
-    if (!hasPermission) {
-      throw StateError('Location permission denied');
-    }
+    if (!hasPermission) throw StateError('Location permission denied');
 
     await _driverPositionSubscription?.cancel();
 
@@ -165,22 +159,18 @@ class LocationService {
 
     _driverPositionSubscription =
         Geolocator.getPositionStream(locationSettings: settings).listen(
-      (position) {
-        upsertSaathiLiveLocation(
-          saathiId: saathiId,
-          position: position,
-          vehicleType: vehicleType,
-          isAvailable: true,
-        );
-      },
-    );
-
-    final currentPosition = await Geolocator.getCurrentPosition(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.high,
+      (position) => upsertSaathiLiveLocation(
+        saathiId: saathiId,
+        position: position,
+        vehicleType: vehicleType,
+        isAvailable: true,
       ),
     );
 
+    final currentPosition = await Geolocator.getCurrentPosition(
+      locationSettings:
+          const LocationSettings(accuracy: LocationAccuracy.high),
+    );
     await upsertSaathiLiveLocation(
       saathiId: saathiId,
       position: currentPosition,
@@ -189,21 +179,78 @@ class LocationService {
     );
   }
 
-  static Future<void> stopSaathiLiveLocation({
-    required String saathiId,
-  }) async {
+  static Future<void> stopSaathiLiveLocation({required String saathiId}) async {
     await _driverPositionSubscription?.cancel();
     _driverPositionSubscription = null;
 
-    await FirebaseFirestore.instance.collection('saathis').doc(saathiId).set(
-      {
-        'isAvailable': false,
-        'lastSeen': FieldValue.serverTimestamp(),
-        'fcmToken': NotificationService.currentToken,
+    await FirebaseFirestore.instance
+        .collection(AppConstants.saathiCollection)
+        .doc(saathiId)
+        .set(
+          {
+            'isAvailable': false,
+            'lastSeen': FieldValue.serverTimestamp(),
+            'fcmToken': NotificationService.currentToken,
+          },
+          SetOptions(merge: true),
+        );
+  }
+
+  // ─── PARALLEL RIDE TRACKING ──────────────────────────────────────────────────
+
+  /// Starts a periodic timer that updates BOTH the active ride doc AND saathis
+  /// collection simultaneously (parallel update) every [intervalSeconds] seconds.
+  static void startRideLocationUpdates({
+    required String bookingId,
+    required String saathiId,
+    int intervalSeconds = 5,
+    void Function(double lat, double lng)? onUpdate,
+  }) {
+    _rideLocationTimer?.cancel();
+
+    _rideLocationTimer = Timer.periodic(
+      Duration(seconds: intervalSeconds),
+      (timer) async {
+        try {
+          final pos = await Geolocator.getCurrentPosition(
+            locationSettings:
+                const LocationSettings(accuracy: LocationAccuracy.high),
+          );
+          final geoPoint = GeoFirePoint(GeoPoint(pos.latitude, pos.longitude));
+
+          // PARALLEL: update ride doc + saathi doc at the same time
+          await Future.wait([
+            FirebaseFirestore.instance
+                .collection(AppConstants.bookingsCollection)
+                .doc(bookingId)
+                .update({
+              'saathiLat': pos.latitude,
+              'saathiLng': pos.longitude,
+              'saathiLastUpdate': FieldValue.serverTimestamp(),
+            }),
+            FirebaseFirestore.instance
+                .collection(AppConstants.saathiCollection)
+                .doc(saathiId)
+                .set({
+              'position': geoPoint.data,
+              'lastSeen': FieldValue.serverTimestamp(),
+            }, SetOptions(merge: true)),
+          ]);
+
+          onUpdate?.call(pos.latitude, pos.longitude);
+        } catch (_) {
+          // Silent fail — next tick will retry
+        }
       },
-      SetOptions(merge: true),
     );
   }
+
+  static void stopRideLocationUpdates() {
+    _rideLocationTimer?.cancel();
+    _rideLocationTimer = null;
+  }
+
+  // ─── Mapping helpers ─────────────────────────────────────────────────────────
 
   static List<NearbySaathi> mapNearbySaathis({
     required List<DocumentSnapshot<Map<String, dynamic>>> docs,
@@ -213,30 +260,22 @@ class LocationService {
 
     for (final doc in docs) {
       final data = doc.data();
-      if (data == null) {
-        continue;
-      }
+      if (data == null) continue;
 
       final position = data['position'];
-      if (position is! Map<String, dynamic>) {
-        continue;
-      }
+      if (position is! Map<String, dynamic>) continue;
 
       final geopoint = position['geopoint'];
-      if (geopoint is! GeoPoint) {
-        continue;
-      }
+      if (geopoint is! GeoPoint) continue;
 
       final distanceMeters = Geolocator.distanceBetween(
-        center.latitude,
-        center.longitude,
-        geopoint.latitude,
-        geopoint.longitude,
+        center.latitude, center.longitude,
+        geopoint.latitude, geopoint.longitude,
       );
-
       final distanceKm = distanceMeters / 1000;
       final etaMinutes = ((distanceKm / 25) * 60).round();
-      final vehicleType = (data['vehicleType'] ?? data['VehicleType'] ?? data['vehicle'] ?? 'Vehicle')
+      final vehicleType = (data['vehicleType'] ?? data['VehicleType'] ??
+              data['vehicle'] ?? 'Vehicle')
           .toString()
           .trim();
       final name = (data['name'] ?? data['Name'] ?? data['saathiName'] ?? 'Saathi')
@@ -246,91 +285,57 @@ class LocationService {
           .toString()
           .trim();
 
-      list.add(
-        NearbySaathi(
-          id: doc.id,
-          name: name,
-          phone: phone,
-          vehicleType: vehicleType.isEmpty ? 'Vehicle' : vehicleType,
-          position: LatLng(geopoint.latitude, geopoint.longitude),
-          distanceKm: distanceKm,
-          etaMinutes: etaMinutes,
-        ),
-      );
+      list.add(NearbySaathi(
+        id: doc.id,
+        name: name,
+        phone: phone,
+        vehicleType: vehicleType.isEmpty ? 'Vehicle' : vehicleType,
+        position: LatLng(geopoint.latitude, geopoint.longitude),
+        distanceKm: distanceKm,
+        etaMinutes: etaMinutes,
+      ));
     }
 
     list.sort((a, b) => a.distanceKm.compareTo(b.distanceKm));
     return list;
   }
 
+  // ─── Debug helpers ───────────────────────────────────────────────────────────
+
   static Future<void> createTestSaathisForDebug() async {
     if (!kDebugMode) return;
 
     try {
       final testSaathis = [
-        {
-          'docId': 'test_saathi_tarkani_1',
-          'name': 'Raj',
-          'phone': '9999000001',
-          'village': 'Tarkani',
-          'vehicleType': 'Auto',
-          'lat': 20.8550,
-          'lng': 73.2580,
-        },
-        {
-          'docId': 'test_saathi_anaval_1',
-          'name': 'Priya',
-          'phone': '9999000002',
-          'village': 'Anaval',
-          'vehicleType': 'Bike',
-          'lat': 20.8306,
-          'lng': 73.2469,
-        },
-        {
-          'docId': 'test_saathi_kos_1',
-          'name': 'Amit',
-          'phone': '9999000003',
-          'village': 'Kos',
-          'vehicleType': 'Auto',
-          'lat': 20.8480,
-          'lng': 73.2350,
-        },
+        {'docId': 'test_saathi_tarkani_1', 'name': 'Raj',   'phone': '9999000001', 'village': 'Tarkani', 'vehicleType': 'Auto',  'lat': 20.8550, 'lng': 73.2580},
+        {'docId': 'test_saathi_anaval_1',  'name': 'Priya', 'phone': '9999000002', 'village': 'Anaval',  'vehicleType': 'Bike',  'lat': 20.8306, 'lng': 73.2469},
+        {'docId': 'test_saathi_kos_1',     'name': 'Amit',  'phone': '9999000003', 'village': 'Kos',     'vehicleType': 'Auto',  'lat': 20.8480, 'lng': 73.2350},
       ];
 
       final batch = FirebaseFirestore.instance.batch();
+      for (final s in testSaathis) {
+        final geoPoint = GeoFirePoint(GeoPoint(s['lat'] as double, s['lng'] as double));
+        final ref = FirebaseFirestore.instance
+            .collection(AppConstants.saathiCollection)
+            .doc(s['docId'] as String);
 
-      for (final saathi in testSaathis) {
-        final geoPoint = GeoFirePoint(
-          GeoPoint(saathi['lat'] as double, saathi['lng'] as double),
-        );
-
-        final docRef = FirebaseFirestore.instance.collection('saathis').doc(saathi['docId'] as String);
-
-        batch.set(
-          docRef,
-          {
-            'name': saathi['name'],
-            'phone': saathi['phone'],
-            'village': saathi['village'],
-            'vehicleType': saathi['vehicleType'],
-            'position': geoPoint.data,
-            'isAvailable': true,
-            'rating': 5.0,
-            'lastSeen': FieldValue.serverTimestamp(),
-            'createdAt': FieldValue.serverTimestamp(),
-          },
-          SetOptions(merge: true),
-        );
+        batch.set(ref, {
+          'name': s['name'],
+          'phone': s['phone'],
+          'village': s['village'],
+          'vehicleType': s['vehicleType'],
+          'position': geoPoint.data,
+          'isAvailable': true,
+          'rating': 5.0,
+          'lastSeen': FieldValue.serverTimestamp(),
+          'createdAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
       }
 
       await batch.commit();
-      if (kDebugMode) {
-        print('DEBUG: Created 3 test Saathis in Firebase');
-      }
+      debugPrint('DEBUG: Created 3 test Saathis');
     } catch (e) {
-      if (kDebugMode) {
-        print('DEBUG: Failed to create test Saathis: $e');
-      }
+      debugPrint('DEBUG: Failed to create test Saathis: $e');
     }
   }
 }

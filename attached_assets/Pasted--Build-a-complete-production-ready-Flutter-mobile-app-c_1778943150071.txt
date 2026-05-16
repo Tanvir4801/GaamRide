@@ -1,0 +1,527 @@
+
+Build a complete production-ready Flutter mobile app called GaamRide.
+This is a village-level ride + logistics platform for rural Gujarat, India.
+
+---
+
+## APP OVERVIEW
+
+GaamRide has TWO modules in one app:
+1. GaamRide — Person transport (like Rapido for villages)
+2. GaamHaul — Vehicle/tempo booking for farmers (like Porter for villages)
+
+THREE user roles:
+- Customer — books rides or vehicles
+- Gaam Saathi — provides bike/auto rides  
+- Haul Saathi — owns tempo/truck, accepts haul bookings
+
+Same login for all roles. Role detected from Firestore after login.
+One person can be both Gaam Saathi AND Haul Saathi.
+
+Service area: 9 villages in Mahuva taluka, Surat district, Gujarat.
+Villages: Anaval, Kos, Tarkani, Angaldhara, Dholikuva, 
+          Lakhavadi, Unai, Doldha, Kamboya
+
+---
+
+## TECH STACK
+
+- Flutter (latest stable)
+- Firebase Auth (OTP phone login + Google Sign-In)
+- Cloud Firestore (database)
+- Firebase Storage (profile photos)
+- Firebase Cloud Messaging (FCM push notifications)
+- Google Maps Flutter (maps + real-time tracking)
+- Geoflutterfire Plus (geo queries)
+- Geolocator (device GPS)
+- Permission Handler (permissions)
+- URL Launcher (call + WhatsApp)
+
+---
+
+## FIREBASE COLLECTIONS STRUCTURE
+
+### users/{userId}
+{ uid: string, name: string, phone: string, role: 'customer' | 'saathi' | 'haul_saathi' | 'both', village: string, profilePhoto: string (url, optional), createdAt: timestamp, fcmToken: string }
+
+
+
+### saathis/{userId}
+{ uid: string, name: string, phone: string, vehicleType: 'bike' | 'auto' | 'cycle', vehicleNumber: string, village: string, isAvailable: boolean, isOnline: boolean, position: GeoFirePoint, lastSeen: timestamp, rating: number (default 5.0), totalRides: number, fcmToken: string }
+
+
+
+### rides/{rideId}
+{ rideId: string, customerId: string, customerName: string, customerPhone: string, saathiId: string (empty until accepted), saathiName: string, saathiPhone: string, pickupVillage: string, pickupLat: number, pickupLng: number, destinationVillage: string, destinationLat: number, destinationLng: number, status: 'searching' | 'accepted' | 'arriving' | 'started' | 'completed' | 'cancelled', fare: number, distance: number, createdAt: timestamp, acceptedAt: timestamp, completedAt: timestamp, otp: string (4 digit, for ride start confirmation) }
+
+
+
+### haul_vehicles/{userId}
+{ uid: string, ownerName: string, phone: string, vehicleType: 'mini_tempo' | 'pickup' | 'tractor' | 'truck_407', capacity: string, ratePerHour: number, vehicleNumber: string, village: string, isAvailable: boolean, position: GeoFirePoint, lastSeen: timestamp, totalBookings: number, fcmToken: string }
+
+
+
+### haul_bookings/{bookingId}
+{ bookingId: string, customerId: string, customerName: string, customerPhone: string, vehicleOwnerId: string, ownerName: string, ownerPhone: string, vehicleType: string, duration: '1h' | '2h' | 'half_day' | 'full_day', durationHours: number, loadDescription: string, pickupVillage: string, pickupLat: number, pickupLng: number, status: 'searching' | 'accepted' | 'started' | 'completed' | 'cancelled', totalFare: number, createdAt: timestamp, acceptedAt: timestamp, completedAt: timestamp }
+
+
+
+### villages/{villageId}
+{ name: string, nameGu: string, lat: number, lng: number, isActive: boolean, taluka: 'Mahuva' }
+
+
+
+---
+
+## COMPLETE SCREEN LIST & FLOW
+
+### AUTH FLOW
+SplashScreen (2 sec logo) ↓ AuthGateScreen → if logged in + profile complete → MainShell → if logged in + no profile → RoleSelectScreen → if not logged in → LoginScreen
+
+LoginScreen → Phone number input → OTP verification → ProfileSetupScreen → OR Google Sign-In → ProfileSetupScreen
+
+ProfileSetupScreen → Name, village selection, profile photo (optional) → Role: "Customer" or "Gaam Saathi" or "Vehicle Owner (Haul)" → Submit → MainShell
+
+
+
+### MAIN SHELL
+MainShell (after login) BottomNavigationBar: Tab 1: GaamRide (green #2E7D32) Tab 2: GaamHaul (orange #E65100)
+
+
+
+---
+
+## MODULE 1 — GAAMRIDE (GREEN)
+
+### Customer side screens:
+
+#### CustomerHomeScreen
+- Auto-detect GPS → find nearest village → show as pickup
+- Destination village selector (bottom sheet, searchable)
+- "સાથી શોધો / Find Saathi" button
+- Shows nearby available Saathi within 5km
+- SaathiCard for each result:
+  - Name, vehicle, distance, ETA
+  - "બુક કરો / Book" button → sends ride request
+  - Call + WhatsApp buttons (fallback)
+
+#### RideRequestScreen  
+- Shows after customer taps Book
+- Animated "Searching for Saathi..." with pulsing map marker
+- Real-time listener on ride document status field
+- When Saathi accepts → auto navigate to RideTrackingScreen
+- Cancel button (cancels ride document in Firestore)
+- Timeout after 2 minutes: "કોઈ સાથી મળ્યો નહીં, ફરી પ્રયાસ કરો"
+
+#### RideTrackingScreen (CORE FEATURE)
+- Full screen Google Map
+- Customer blue marker (static, their location)
+- Saathi GREEN marker (MOVING in real-time using Firestore listener)
+  - Saathi app updates position every 5 seconds to Firestore
+  - Customer app listens to rides/{rideId}/saathiLat + saathiLng
+  - Marker animates smoothly between positions
+- Polyline route drawn between customer and Saathi
+- Bottom card showing:
+  - Saathi name + vehicle type
+  - "આવી રહ્યા છે / On the way" status
+  - ETA countdown
+  - Call Saathi button
+- Status updates:
+  - "Saathi is coming" → arriving
+  - "OTP verify" → show 4-digit OTP for customer to tell Saathi
+  - "Ride started" → route changes to destination
+  - "Arrived" → RideCompleteScreen
+
+#### RideCompleteScreen
+- "સવારી પૂર્ણ! / Ride Complete!"
+- Fare amount shown
+- Rate Saathi: star rating (1-5)
+- "ઘરે જાઓ / Go Home" button
+
+### Saathi side screens:
+
+#### SaathiDashboard
+- Top: Online/Offline toggle switch
+  - Online → start GPS stream, update Firestore every 10 seconds
+  - Offline → stop stream, set isAvailable false
+- When Online: show incoming ride requests as popup/bottom sheet
+  - Ride request card: customer name, pickup village, destination, distance
+  - ACCEPT button (green, big)
+  - REJECT button (outlined)
+  - Auto-expires after 30 seconds if no response
+- Stats: Today's rides, earnings estimate
+- Profile section
+
+#### SaathiRideScreen (after accepting)
+- Map showing customer location with route
+- Navigation directions to customer
+- "ગ્રાહક સ્થળ પર પહોંચ્યા / Arrived at customer" button
+- OTP input field → customer tells Saathi the 4-digit OTP
+- After OTP verified → "સવારી શરૂ / Start Ride" button
+- After ride starts → show destination on map
+- "સવારી પૂર્ણ / Complete Ride" button
+
+---
+
+## MODULE 2 — GAAMHAUL (ORANGE)
+
+### Customer/Farmer side:
+
+#### GaamHaulHomeScreen
+- Auto-detect location (same village detection)
+- Vehicle type selector: Mini Tempo / Pickup / Tractor / 407 Truck
+  (3-4 cards with icons, orange when selected)
+- Duration chips: 1 કલાક / 2 કલાક / અર્ધો દિવસ / આખો દિવસ
+- Load description text field (optional)
+- "વાહન શોધો / Find Vehicle" button
+- Results: HaulVehicleCard list
+  - Owner name, vehicle type, capacity
+  - Rate: ₹{rate}/hour × duration = total estimate shown
+  - Distance + ETA
+  - Book button → HaulRequestScreen
+  - Call + WhatsApp fallback
+
+#### HaulRequestScreen
+- "વાહન શોધી રહ્યા છીએ..." animated screen
+- Real-time listener on haul_booking status
+- Shows booking details
+- Cancel option
+
+#### HaulTrackingScreen
+- Same as RideTrackingScreen but orange theme
+- Vehicle owner location moving in real-time
+- Shows vehicle type icon on map marker
+- Bottom card: owner name, vehicle, ETA, Call button
+
+### Vehicle Owner side:
+
+#### VehicleOwnerDashboard
+- Online/Offline toggle (orange switch)
+- Incoming haul requests as popup:
+  - Customer name, pickup village, vehicle type needed
+  - Duration requested
+  - Estimated earning: ₹{ratePerHour × hours}
+  - ACCEPT / REJECT
+- Today's bookings, earnings
+- Vehicle info card with edit option
+
+#### VehicleRegisterScreen
+- Form: name, phone, vehicle type, capacity, rate/hour, vehicle number
+- Home village dropdown (9 villages only)
+- Save → creates haul_vehicles document
+
+---
+
+## CORE REAL-TIME TRACKING IMPLEMENTATION
+
+This is the most important feature. Implement exactly as follows:
+
+### Saathi location update (Saathi app, every 5-10 seconds):
+```dart
+// When ride is active:
+Timer.periodic(Duration(seconds: 5), (timer) {
+  Position pos = await Geolocator.getCurrentPosition();
+  
+  // Update ride document with current Saathi location
+  await FirebaseFirestore.instance
+    .collection('rides')
+    .doc(rideId)
+    .update({
+      'saathiLat': pos.latitude,
+      'saathiLng': pos.longitude,
+      'saathiLastUpdate': FieldValue.serverTimestamp(),
+    });
+    
+  // Also update saathis collection for discovery
+  await FirebaseFirestore.instance
+    .collection('saathis')
+    .doc(saathiId)
+    .update({
+      'position': GeoFirePoint(pos.latitude, pos.longitude).data,
+      'lastSeen': FieldValue.serverTimestamp(),
+    });
+});
+```
+
+### Customer real-time tracking (Customer app):
+```dart
+// Listen to ride document for Saathi location changes:
+FirebaseFirestore.instance
+  .collection('rides')
+  .doc(rideId)
+  .snapshots()
+  .listen((snapshot) {
+    final data = snapshot.data()!;
+    final lat = data['saathiLat'];
+    final lng = data['saathiLng'];
+    final status = data['status'];
+    
+    // Animate marker to new position
+    _animateSaathiMarker(LatLng(lat, lng));
+    
+    // Handle status changes
+    if (status == 'accepted') showArrivingUI();
+    if (status == 'started') showRideStartedUI();
+    if (status == 'completed') navigateToCompleteScreen();
+  });
+```
+
+### Smooth marker animation:
+```dart
+void _animateSaathiMarker(LatLng newPosition) {
+  // Animate from current position to new position
+  // Use a Timer + linear interpolation for smooth movement
+  final startPos = _saathiMarkerPosition;
+  final steps = 20;
+  int step = 0;
+  
+  Timer.periodic(Duration(milliseconds: 50), (timer) {
+    step++;
+    if (step >= steps) { timer.cancel(); return; }
+    
+    final lat = startPos.latitude + 
+      (newPosition.latitude - startPos.latitude) * step / steps;
+    final lng = startPos.longitude + 
+      (newPosition.longitude - startPos.longitude) * step / steps;
+      
+    setState(() {
+      _saathiMarkerPosition = LatLng(lat, lng);
+      _markers = _buildMarkers(); // rebuild with new position
+    });
+  });
+}
+```
+
+---
+
+## RIDE REQUEST → ACCEPT FLOW (FCM Notifications)
+
+### When customer books a ride:
+1. Create rides/{rideId} document with status: 'searching'
+2. Find nearest available Saathi (already fetched on home screen)
+3. Send FCM push notification to that Saathi's fcmToken:
+
+—
+
+Title: "નવી સવારી વિનંતી! 🛵" Body: "${customerVillage} → ${destinationVillage} | ${distance} કિમી" Data: { rideId: rideId, type: 'ride_request’ }
+4. Customer sees "Searching..." animation
+
+### When Saathi receives FCM:
+- App is foreground → show bottom sheet popup with ride details
+- App is background → notification tray, tap opens app to ride request
+
+### When Saathi accepts:
+1. Update rides/{rideId}: 
+   status: 'accepted', saathiId, saathiName, saathiPhone
+2. Send FCM to customer: "સાથી મળ્યો! ${saathiName} આવી રહ્યા છે"
+3. Navigate Saathi to SaathiRideScreen
+4. Customer RideRequestScreen auto-navigates to RideTrackingScreen
+
+---
+
+## FARE CALCULATION
+
+### GaamRide:
+```dart
+double calculateFare(double distanceKm) {
+  const double baseFare = 20.0;     // ₹20 base
+  const double perKmRate = 8.0;     // ₹8 per km
+  const double minimumFare = 30.0;
+  
+  double fare = baseFare + (distanceKm * perKmRate);
+  return fare < minimumFare ? minimumFare : fare;
+}
+// Example: 3 km → ₹20 + ₹24 = ₹44
+```
+
+### GaamHaul:
+```dart
+double calculateHaulFare(int ratePerHour, String duration) {
+  final hours = {
+    '1h': 1.0, '2h': 2.0, 
+    'half_day': 4.0, 'full_day': 8.0
+  };
+  double baseFare = ratePerHour * hours[duration]!;
+  double appCommission = 75.0; // flat ₹75 booking fee
+  return appCommission; // customer pays owner directly, app charges commission
+}
+```
+
+---
+
+## OTP VERIFICATION FOR RIDE START
+
+```dart
+// When ride is created, generate 4-digit OTP:
+String generateOTP() => (1000 + Random().nextInt(9000)).toString();
+
+// Store in rides/{rideId}: otp: "4821"
+
+// Customer sees OTP on RideTrackingScreen after Saathi arrives
+// Customer tells OTP verbally to Saathi
+// Saathi enters OTP in SaathiRideScreen
+// If OTP matches → status changes to 'started'
+```
+
+---
+
+## UI DESIGN SYSTEM
+
+### Colors:
+- GaamRide primary: #2E7D32 (dark green)
+- GaamRide accent: #4CAF50 (light green)  
+- GaamHaul primary: #E65100 (deep orange)
+- GaamHaul accent: #FF7043 (light orange)
+- Background: #F5F5F5
+- Card: #FFFFFF
+- Text primary: #212121
+- Text secondary: #757575
+
+### Typography:
+- All user-facing strings: Gujarati first, English below (smaller, grey)
+- Example: 
+  Text("સાથી શોધો", style: TextStyle(fontSize:16, fontWeight:bold))
+  Text("Find Saathi", style: TextStyle(fontSize:12, color:grey))
+
+### Village boundary:
+- Map locked to: SW(20.780, 73.190) NE(20.920, 73.320)
+- Zoom: min 11, max 17
+- Outside zone message: "GaamRide ફક્ત Mahuva તાલુકામાં ઉપલબ્ધ છે"
+
+---
+
+## APPROVED VILLAGES (hardcoded + Firestore)
+
+```dart
+final villages = [
+  Village('Anaval',     'આણવલ',    20.8306, 73.2469),
+  Village('Kos',        'કૉસ',     20.8480, 73.2350),
+  Village('Tarkani',    'તારકણી',  20.8550, 73.2580),
+  Village('Angaldhara', 'અંગળધરા', 20.8180, 73.2280),
+  Village('Dholikuva',  'ઢોળીકૂવા',20.8650, 73.2800),
+  Village('Lakhavadi',  'લખાવડી',  20.8050, 73.2150),
+  Village('Unai',       'ઉનાઈ',    20.8550, 73.2100),
+  Village('Doldha',     'ડોળધા',   20.7950, 73.2600),
+  Village('Kamboya',    'કાંબોયા', 20.8750, 73.2200),
+];
+```
+
+---
+
+## FILE STRUCTURE
+lib/ models/ user_model.dart saathi_model.dart ride_model.dart village_model.dart haul_vehicle_model.dart haul_booking_model.dart
+
+services/ auth_service.dart location_service.dart village_service.dart ride_service.dart haul_service.dart notification_service.dart
+
+screens/ splash_screen.dart login_screen.dart otp_verification_screen.dart profile_setup_screen.dart auth_gate_screen.dart main_shell.dart
+
+
+
+// GaamRide — Customer
+
+customer_home_screen.dart
+
+ride_request_screen.dart
+
+ride_tracking_screen.dart
+
+ride_complete_screen.dart
+
+
+
+// GaamRide — Saathi
+
+saathi_dashboard.dart
+
+saathi_ride_screen.dart
+
+
+
+// GaamHaul — Farmer
+
+gaam_haul_home_screen.dart
+
+haul_request_screen.dart
+
+haul_tracking_screen.dart
+
+
+
+// GaamHaul — Vehicle Owner
+
+vehicle_owner_dashboard.dart
+
+vehicle_register_screen.dart
+
+
+widgets/ saathi_card.dart haul_vehicle_card.dart village_selector.dart ride_request_popup.dart
+
+utils/ fare_calculator.dart otp_generator.dart constants.dart
+
+firebase_options.dart main.dart
+
+## PUBSPEC.YAML PACKAGES
+
+```yaml
+dependencies:
+  flutter:
+    sdk: flutter
+  firebase_core: ^3.0.0
+  firebase_auth: ^5.0.0
+  cloud_firestore: ^5.0.0
+  firebase_storage: ^12.0.0
+  firebase_messaging: ^15.0.0
+  google_maps_flutter: ^2.5.0
+  geolocator: ^12.0.0
+  geoflutterfire_plus: ^0.0.14
+  permission_handler: ^11.0.0
+  url_launcher: ^6.2.0
+  google_sign_in: ^6.2.0
+  image_picker: ^1.0.0
+  cached_network_image: ^3.3.0
+  intl: ^0.19.0
+  shared_preferences: ^2.2.0
+  flutter_local_notifications: ^17.0.0
+  http: ^1.2.0
+```
+
+---
+
+## IMPORTANT PRODUCTION REQUIREMENTS
+
+1. All location permissions handled with proper dialogs in Gujarati
+2. FCM background message handler in main.dart
+3. Firestore security rules:
+   - Users can only read/write their own documents
+   - Rides readable by both customer and saathi on that ride
+   - Saathis collection readable by all authenticated users
+4. Loading states on every async operation
+5. Error handling with Gujarati error messages
+6. No hardcoded API keys — use .env or Firebase config
+7. Handle no-internet gracefully: 
+   "ઇન્ટરનેટ કનેક્શન નથી / No internet connection"
+8. Handle GPS not available:
+   "લોકેશન ચાલુ કરો / Please enable location"
+9. Smooth transitions between screens
+10. App works on Android API 21+ minimum
+
+---
+
+## BUILD ORDER (implement in this exact order)
+
+1. Firebase setup + Auth (OTP + Google)
+2. User profile + role selection
+3. Village data + location detection
+4. GaamRide customer home (find Saathi, call/WhatsApp)
+5. Saathi dashboard (online/offline toggle + location update)
+6. Ride request flow (book → notification → accept → reject)
+7. Real-time tracking (live Saathi marker on map)
+8. OTP verification + ride complete + rating
+9. GaamHaul home (find vehicle, call/WhatsApp)
+10. Vehicle owner dashboard + haul request flow
+11. Haul real-time tracking
+12. Polish UI + Gujarati translations throughout
+
+Build each step completely before moving to next.
+Generate complete working code for all files.
+Test that each flow works end to end before proceeding.
