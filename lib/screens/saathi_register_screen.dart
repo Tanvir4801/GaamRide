@@ -112,7 +112,10 @@ class _GaamSaathiRegisterScreenState extends State<GaamSaathiRegisterScreen> {
       final phone = _phoneController.text.trim();
       final normalizedPhone = phone.startsWith('+91') ? phone : '+91$phone';
 
-      await FirebaseFirestore.instance.collection('saathi').doc(normalizedPhone).set({
+      await FirebaseFirestore.instance
+          .collection('saathi')
+          .doc(normalizedPhone)
+          .set({
         'uid': authUser?.uid,
         'name': _nameController.text.trim(),
         'phone': normalizedPhone,
@@ -127,7 +130,10 @@ class _GaamSaathiRegisterScreenState extends State<GaamSaathiRegisterScreen> {
       });
 
       if (authUser != null) {
-        await FirebaseFirestore.instance.collection('users').doc(authUser.uid).set(
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(authUser.uid)
+            .set(
           {
             'uid': authUser.uid,
             'phone': normalizedPhone,
@@ -151,7 +157,7 @@ class _GaamSaathiRegisterScreenState extends State<GaamSaathiRegisterScreen> {
 
       Navigator.of(context).pushReplacement(
         MaterialPageRoute<void>(
-            builder: (_) => const MainShell(),
+          builder: (_) => const MainShell(),
         ),
       );
     } on FirebaseException catch (e) {
@@ -274,7 +280,7 @@ class _GaamSaathiRegisterScreenState extends State<GaamSaathiRegisterScreen> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _vehicleType,
+                initialValue: _vehicleType,
                 decoration: InputDecoration(
                   labelText: 'Vehicle Type',
                   border: OutlineInputBorder(

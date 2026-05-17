@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -125,7 +124,8 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
         (route) => false,
       );
     } on FirebaseException catch (e) {
-      debugPrint('otp checkUserAndNavigate FirebaseException: ${e.code} ${e.message}');
+      debugPrint(
+          'otp checkUserAndNavigate FirebaseException: ${e.code} ${e.message}');
       _showError(e.message ?? 'Failed to continue login flow.');
     } catch (e) {
       debugPrint('otp checkUserAndNavigate error: $e');
@@ -219,7 +219,8 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
             if (!mounted) return;
             await _checkUserAndNavigate(fallbackPhone: widget.phoneNumber);
           } on FirebaseAuthException catch (e) {
-            debugPrint('resendOtp verificationCompleted FirebaseAuthException: ${e.code} ${e.message}');
+            debugPrint(
+                'resendOtp verificationCompleted FirebaseAuthException: ${e.code} ${e.message}');
             if (!mounted) return;
             _showError(e.message ?? 'Auto verification failed.');
           } catch (e) {
@@ -329,7 +330,8 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
-                  minimumSize: const Size.fromHeight(AppSizes.largeButtonHeight),
+                  minimumSize:
+                      const Size.fromHeight(AppSizes.largeButtonHeight),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
                   ),
@@ -341,7 +343,8 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                         width: 24,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
                         ),
                       )
                     : const Text(
@@ -355,9 +358,10 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
               ),
               const SizedBox(height: 12),
               TextButton(
-                onPressed: (_secondsUntilResend == 0 && !_isResending && !_isLoading)
-                    ? _resendOtp
-                    : null,
+                onPressed:
+                    (_secondsUntilResend == 0 && !_isResending && !_isLoading)
+                        ? _resendOtp
+                        : null,
                 child: _isResending
                     ? const SizedBox(
                         height: 18,

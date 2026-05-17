@@ -44,8 +44,7 @@ class _BookingSearchScreenState extends State<BookingSearchScreen>
   bool _navigatedToRide = false;
   bool _shownRejectedMessage = false;
 
-  String get _entityGu =>
-      widget.type == BookingType.haul ? 'વાહન' : 'સાથી';
+  String get _entityGu => widget.type == BookingType.haul ? 'વાહન' : 'સાથી';
 
   String get _entityEn =>
       widget.type == BookingType.haul ? 'Vehicle' : 'Saathi';
@@ -190,11 +189,10 @@ class _BookingSearchScreenState extends State<BookingSearchScreen>
         if (!snapshot.hasData) return const SizedBox.shrink();
 
         final docs = snapshot.data!.docs;
-        int pending = 0, accepted = 0, rejected = 0;
+        int pending = 0, rejected = 0;
         for (final doc in docs) {
           final status = (doc.data()['status'] ?? '').toString();
           if (status == DriverRequestStatus.pending) pending++;
-          if (status == DriverRequestStatus.accepted) accepted++;
           if (status == DriverRequestStatus.rejected) rejected++;
         }
 
@@ -222,9 +220,9 @@ class _BookingSearchScreenState extends State<BookingSearchScreen>
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _statChip('Notified', '${docs.length}', Colors.blue),
-              _statChip('Pending', '$pending', AppColors.warning),
-              _statChip('Rejected', '$rejected', AppColors.error),
+              _statChip('Notified', docs.length.toString(), Colors.blue),
+              _statChip('Pending', pending.toString(), AppColors.warning),
+              _statChip('Rejected', rejected.toString(), AppColors.error),
             ],
           ),
         );
@@ -274,7 +272,8 @@ class _BookingSearchScreenState extends State<BookingSearchScreen>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.wifi_off, size: 56, color: AppColors.error),
+                    const Icon(Icons.wifi_off,
+                        size: 56, color: AppColors.error),
                     const SizedBox(height: 12),
                     Text(
                       AppConstants.noInternetMessage,
@@ -297,7 +296,7 @@ class _BookingSearchScreenState extends State<BookingSearchScreen>
           final status = (data['status'] ?? BookingStatus.pending).toString();
           final driverId = (data['driverId'] ?? '').toString();
           final saathiId = (data['saathiId'] ?? driverId).toString();
-          final saathiName = (data['saathiName'] ?? '$_entityEn').toString();
+          final saathiName = (data['saathiName'] ?? _entityEn).toString();
           final saathiPhone = (data['saathiPhone'] ?? '').toString();
           final otp = data['otp']?.toString();
           final fare = (data['fare'] as num?)?.toDouble();
@@ -316,7 +315,8 @@ class _BookingSearchScreenState extends State<BookingSearchScreen>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.check_circle, color: widget.primaryColor, size: 72),
+                  Icon(Icons.check_circle,
+                      color: widget.primaryColor, size: 72),
                   const SizedBox(height: 16),
                   Text(
                     '$_entityGu મળ્યો! / $_entityEn Found!',
@@ -350,7 +350,7 @@ class _BookingSearchScreenState extends State<BookingSearchScreen>
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (!mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
+                  SnackBar(
                     content: Text('$_entityGu ઉપલબ્ધ ન હતા. ફરી પ્રયાસ કરો.'),
                   ),
                 );
@@ -392,7 +392,7 @@ class _BookingSearchScreenState extends State<BookingSearchScreen>
                   TextButton.icon(
                     onPressed: () async {
                       await BookingService.cancelBooking(widget.bookingId);
-                      if (mounted) Navigator.of(context).pop();
+                      if (mounted) Navigator.of(this.context).pop();
                     },
                     icon: const Icon(Icons.close, color: AppColors.error),
                     label: const Text(
@@ -434,7 +434,8 @@ class _BookingSearchScreenState extends State<BookingSearchScreen>
             Text(
               subtitle,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
+              style:
+                  const TextStyle(color: AppColors.textSecondary, fontSize: 14),
             ),
             const SizedBox(height: 24),
             ElevatedButton(

@@ -44,7 +44,6 @@ class _SaathiRideScreenState extends State<SaathiRideScreen> {
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _bookingSub;
 
   String _status = BookingStatus.accepted;
-  String _otpInput = '';
   bool _isVerifyingOtp = false;
   bool _isCompleting = false;
   bool _isMarkingArrived = false;
@@ -158,7 +157,8 @@ class _SaathiRideScreenState extends State<SaathiRideScreen> {
       await BookingService.markSaathiArriving(widget.bookingId);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('ગ્રાહક સ્થળ પર પહોંચ્યા / Arrived at customer')),
+          const SnackBar(
+              content: Text('ગ્રાહક સ્થળ પર પહોંચ્યા / Arrived at customer')),
         );
       }
     } catch (_) {
@@ -176,7 +176,8 @@ class _SaathiRideScreenState extends State<SaathiRideScreen> {
     final otp = _otpController.text.trim();
     if (otp.length != 4) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('4 અંકનો OTP દાખલ કરો / Enter 4-digit OTP')),
+        const SnackBar(
+            content: Text('4 અંકનો OTP દાખલ કરો / Enter 4-digit OTP')),
       );
       return;
     }
@@ -253,7 +254,8 @@ class _SaathiRideScreenState extends State<SaathiRideScreen> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('સવારી પૂર્ણ કરવામાં ભૂલ / Error completing ride')),
+          const SnackBar(
+              content: Text('સવારી પૂર્ણ કરવામાં ભૂલ / Error completing ride')),
         );
       }
     } finally {
@@ -289,7 +291,8 @@ class _SaathiRideScreenState extends State<SaathiRideScreen> {
                 _mapController = c;
                 _rebuildMapElements();
               },
-              initialCameraPosition: CameraPosition(target: mapCenter, zoom: 14),
+              initialCameraPosition:
+                  CameraPosition(target: mapCenter, zoom: 14),
               markers: _markers,
               polylines: _polylines,
               myLocationButtonEnabled: false,
@@ -335,7 +338,8 @@ class _SaathiRideScreenState extends State<SaathiRideScreen> {
                                 if (widget.destinationVillage != null)
                                   Text(
                                     '→ ${widget.destinationVillage}',
-                                    style: const TextStyle(color: AppColors.textSecondary),
+                                    style: const TextStyle(
+                                        color: AppColors.textSecondary),
                                   ),
                               ],
                             ),
@@ -362,8 +366,10 @@ class _SaathiRideScreenState extends State<SaathiRideScreen> {
                       onPressed: _isMarkingArrived ? null : _markArrived,
                       icon: _isMarkingArrived
                           ? const SizedBox(
-                              width: 18, height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2, color: Colors.white),
                             )
                           : const Icon(Icons.location_on),
                       label: const Text(
@@ -373,9 +379,11 @@ class _SaathiRideScreenState extends State<SaathiRideScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
-                        minimumSize: const Size.fromHeight(AppSizes.largeButtonHeight),
+                        minimumSize:
+                            const Size.fromHeight(AppSizes.largeButtonHeight),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
+                          borderRadius:
+                              BorderRadius.circular(AppSizes.buttonRadius),
                         ),
                       ),
                     ),
@@ -387,7 +395,8 @@ class _SaathiRideScreenState extends State<SaathiRideScreen> {
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
                         color: AppColors.warning.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
+                        borderRadius:
+                            BorderRadius.circular(AppSizes.cardRadius),
                         border: Border.all(color: AppColors.warning),
                       ),
                       child: Column(
@@ -416,14 +425,16 @@ class _SaathiRideScreenState extends State<SaathiRideScreen> {
                               hintText: '----',
                               counterText: '',
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
+                                borderRadius: BorderRadius.circular(
+                                    AppSizes.buttonRadius),
                               ),
                               focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
-                                borderSide: const BorderSide(color: AppColors.warning, width: 2),
+                                borderRadius: BorderRadius.circular(
+                                    AppSizes.buttonRadius),
+                                borderSide: const BorderSide(
+                                    color: AppColors.warning, width: 2),
                               ),
                             ),
-                            onChanged: (v) => setState(() => _otpInput = v),
                           ),
                           const SizedBox(height: 10),
                           SizedBox(
@@ -433,19 +444,24 @@ class _SaathiRideScreenState extends State<SaathiRideScreen> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.warning,
                                 foregroundColor: Colors.white,
-                                minimumSize: const Size.fromHeight(AppSizes.largeButtonHeight),
+                                minimumSize: const Size.fromHeight(
+                                    AppSizes.largeButtonHeight),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
+                                  borderRadius: BorderRadius.circular(
+                                      AppSizes.buttonRadius),
                                 ),
                               ),
                               child: _isVerifyingOtp
                                   ? const SizedBox(
-                                      width: 20, height: 20,
-                                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2, color: Colors.white),
                                     )
                                   : const Text(
                                       'OTP ચકાસો / Verify OTP & Start Ride',
-                                      style: TextStyle(fontWeight: FontWeight.w700),
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.w700),
                                     ),
                             ),
                           ),
@@ -459,20 +475,25 @@ class _SaathiRideScreenState extends State<SaathiRideScreen> {
                       onPressed: _isCompleting ? null : _completeRide,
                       icon: _isCompleting
                           ? const SizedBox(
-                              width: 18, height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2, color: Colors.white),
                             )
                           : const Icon(Icons.flag),
                       label: const Text(
                         'સવારી પૂર્ણ / Complete Ride',
-                        style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+                        style: TextStyle(
+                            fontWeight: FontWeight.w700, fontSize: 16),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
-                        minimumSize: const Size.fromHeight(AppSizes.largeButtonHeight),
+                        minimumSize:
+                            const Size.fromHeight(AppSizes.largeButtonHeight),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
+                          borderRadius:
+                              BorderRadius.circular(AppSizes.buttonRadius),
                         ),
                       ),
                     ),
@@ -481,7 +502,8 @@ class _SaathiRideScreenState extends State<SaathiRideScreen> {
                   const SizedBox(height: 12),
 
                   // Call customer
-                  if (widget.customerPhone != null && widget.customerPhone!.isNotEmpty)
+                  if (widget.customerPhone != null &&
+                      widget.customerPhone!.isNotEmpty)
                     OutlinedButton.icon(
                       onPressed: _callCustomer,
                       icon: const Icon(Icons.phone, size: 18),
@@ -491,7 +513,8 @@ class _SaathiRideScreenState extends State<SaathiRideScreen> {
                         foregroundColor: AppColors.primary,
                         minimumSize: const Size.fromHeight(48),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
+                          borderRadius:
+                              BorderRadius.circular(AppSizes.buttonRadius),
                         ),
                       ),
                     ),

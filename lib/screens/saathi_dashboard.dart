@@ -132,8 +132,7 @@ class _GaamSaathiDashboardState extends State<GaamSaathiDashboard> {
         'saathiId': accept ? widget.phone : null,
         'saathiName': accept ? saathiName : null,
         'saathiPhone': accept ? saathiPhone : null,
-        'acceptedAt':
-            accept ? FieldValue.serverTimestamp() : null,
+        'acceptedAt': accept ? FieldValue.serverTimestamp() : null,
         'updatedAt': FieldValue.serverTimestamp(),
       });
 
@@ -193,7 +192,8 @@ class _GaamSaathiDashboardState extends State<GaamSaathiDashboard> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Logout', style: TextStyle(color: AppColors.error)),
+            child:
+                const Text('Logout', style: TextStyle(color: AppColors.error)),
           ),
         ],
       ),
@@ -231,7 +231,8 @@ class _GaamSaathiDashboardState extends State<GaamSaathiDashboard> {
               width: 12,
               height: 12,
               decoration: BoxDecoration(
-                color: isAvailable ? AppColors.success : AppColors.textSecondary,
+                color:
+                    isAvailable ? AppColors.success : AppColors.textSecondary,
                 shape: BoxShape.circle,
               ),
             ),
@@ -241,13 +242,13 @@ class _GaamSaathiDashboardState extends State<GaamSaathiDashboard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    isAvailable
-                        ? 'Online — રાઇડ મળી શકે'
-                        : 'Offline — ઑફલાઇન',
+                    isAvailable ? 'Online — રાઇડ મળી શકે' : 'Offline — ઑફલાઇન',
                     style: TextStyle(
                       fontWeight: FontWeight.w800,
                       fontSize: 16,
-                      color: isAvailable ? AppColors.primary : AppColors.textPrimary,
+                      color: isAvailable
+                          ? AppColors.primary
+                          : AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -267,7 +268,7 @@ class _GaamSaathiDashboardState extends State<GaamSaathiDashboard> {
               ignoring: _isUpdatingAvailability,
               child: Switch(
                 value: isAvailable,
-                activeColor: AppColors.primary,
+                activeThumbColor: AppColors.primary,
                 onChanged: (val) => _updateAvailability(
                   isAvailable: val,
                   vehicleType: vehicleType,
@@ -316,7 +317,8 @@ class _GaamSaathiDashboardState extends State<GaamSaathiDashboard> {
               padding: EdgeInsets.all(20),
               child: Column(
                 children: [
-                  Icon(Icons.hourglass_empty, size: 36, color: AppColors.textSecondary),
+                  Icon(Icons.hourglass_empty,
+                      size: 36, color: AppColors.textSecondary),
                   SizedBox(height: 8),
                   Text(
                     'હાલ કોઈ વિનંતી નથી',
@@ -328,7 +330,8 @@ class _GaamSaathiDashboardState extends State<GaamSaathiDashboard> {
                   SizedBox(height: 2),
                   Text(
                     'No pending ride requests',
-                    style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                    style:
+                        TextStyle(color: AppColors.textSecondary, fontSize: 12),
                   ),
                 ],
               ),
@@ -342,7 +345,8 @@ class _GaamSaathiDashboardState extends State<GaamSaathiDashboard> {
             final pickupLat = (data['pickupLat'] as num?)?.toDouble();
             final pickupLng = (data['pickupLng'] as num?)?.toDouble();
             final destination = (data['destinationVillage'] ?? '').toString();
-            final customerName = (data['customerName'] ?? 'Customer').toString();
+            final customerName =
+                (data['customerName'] ?? 'Customer').toString();
             final customerPhone = (data['customerPhone'] ?? '').toString();
             final fare = (data['fare'] as num?)?.toDouble();
             final otp = data['otp']?.toString();
@@ -426,10 +430,11 @@ class _GaamSaathiDashboardState extends State<GaamSaathiDashboard> {
                     const SizedBox(height: 10),
                     _infoRow(Icons.person, customerName),
                     const SizedBox(height: 4),
-                    _infoRow(Icons.flag, destination.isEmpty ? 'Destination TBD' : destination),
+                    _infoRow(Icons.flag,
+                        destination.isEmpty ? 'Destination TBD' : destination),
                     if (distanceLabel.isNotEmpty) ...[
                       const SizedBox(height: 4),
-                      _infoRow(Icons.straighten, distanceLabel + ' away'),
+                      _infoRow(Icons.straighten, '$distanceLabel away'),
                     ],
                     const SizedBox(height: 12),
                     Row(
@@ -468,7 +473,8 @@ class _GaamSaathiDashboardState extends State<GaamSaathiDashboard> {
                               backgroundColor: AppColors.success,
                               minimumSize: const Size(0, 48),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
+                                borderRadius: BorderRadius.circular(
+                                    AppSizes.buttonRadius),
                               ),
                             ),
                           ),
@@ -493,7 +499,8 @@ class _GaamSaathiDashboardState extends State<GaamSaathiDashboard> {
                               foregroundColor: AppColors.error,
                               minimumSize: const Size(0, 48),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
+                                borderRadius: BorderRadius.circular(
+                                    AppSizes.buttonRadius),
                               ),
                             ),
                           ),
@@ -593,7 +600,8 @@ class _GaamSaathiDashboardState extends State<GaamSaathiDashboard> {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(Icons.star, color: AppColors.secondary, size: 16),
+                      const Icon(Icons.star,
+                          color: AppColors.secondary, size: 16),
                       const SizedBox(width: 4),
                       Text(
                         rating.toStringAsFixed(1),
@@ -711,12 +719,12 @@ class _GaamSaathiDashboardState extends State<GaamSaathiDashboard> {
             return _buildStatusCard(
               icon: Icons.person_add_alt_1,
               title: 'Profile Not Found',
-              message:
-                  'Complete registration to continue.\nનોંધણી પૂર્ણ કરો.',
+              message: 'Complete registration to continue.\nનોંધણી પૂર્ણ કરો.',
               action: ElevatedButton(
                 onPressed: () => Navigator.of(context).pushReplacement(
                   MaterialPageRoute<void>(
-                    builder: (_) => GaamSaathiRegisterScreen(phone: widget.phone),
+                    builder: (_) =>
+                        GaamSaathiRegisterScreen(phone: widget.phone),
                   ),
                 ),
                 style: ElevatedButton.styleFrom(
@@ -789,7 +797,8 @@ class _GaamSaathiDashboardState extends State<GaamSaathiDashboard> {
                     Card(
                       elevation: 0,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
+                        borderRadius:
+                            BorderRadius.circular(AppSizes.cardRadius),
                         side: const BorderSide(color: AppColors.border),
                       ),
                       child: const Padding(

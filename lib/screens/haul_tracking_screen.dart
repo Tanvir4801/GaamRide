@@ -41,7 +41,6 @@ class _HaulTrackingScreenState extends State<HaulTrackingScreen> {
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _bookingSub;
   Timer? _animationTimer;
 
-  LatLng? _ownerPosition;
   LatLng? _animatedOwnerPosition;
   String _status = BookingStatus.accepted;
   String _ownerName = '';
@@ -104,11 +103,9 @@ class _HaulTrackingScreenState extends State<HaulTrackingScreen> {
           final newPos = LatLng(ownerLat, ownerLng);
           if (_animatedOwnerPosition == null) {
             _animatedOwnerPosition = newPos;
-            _ownerPosition = newPos;
           } else {
             _animateOwnerMarker(newPos);
           }
-          _ownerPosition = newPos;
         }
         _rebuildMapElements();
       });
@@ -135,8 +132,10 @@ class _HaulTrackingScreenState extends State<HaulTrackingScreen> {
       }
 
       final t = step / steps;
-      final lat = startPos.latitude + (newPosition.latitude - startPos.latitude) * t;
-      final lng = startPos.longitude + (newPosition.longitude - startPos.longitude) * t;
+      final lat =
+          startPos.latitude + (newPosition.latitude - startPos.latitude) * t;
+      final lng =
+          startPos.longitude + (newPosition.longitude - startPos.longitude) * t;
 
       if (mounted) {
         setState(() {
@@ -235,7 +234,8 @@ class _HaulTrackingScreenState extends State<HaulTrackingScreen> {
                   borderRadius: BorderRadius.circular(AppSizes.cardRadius),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   child: Row(
                     children: [
                       Container(
@@ -271,7 +271,8 @@ class _HaulTrackingScreenState extends State<HaulTrackingScreen> {
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(24)),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.12),
@@ -328,9 +329,11 @@ class _HaulTrackingScreenState extends State<HaulTrackingScreen> {
                       ),
                       if (widget.totalFare != null)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: HaulTrackingScreen._orange.withValues(alpha: 0.1),
+                            color: HaulTrackingScreen._orange
+                                .withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
@@ -353,11 +356,13 @@ class _HaulTrackingScreenState extends State<HaulTrackingScreen> {
                         icon: const Icon(Icons.phone, size: 18),
                         label: const Text('વાહન માલિકને કૉલ / Call Owner'),
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: HaulTrackingScreen._orange),
+                          side: const BorderSide(
+                              color: HaulTrackingScreen._orange),
                           foregroundColor: HaulTrackingScreen._orange,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
+                            borderRadius:
+                                BorderRadius.circular(AppSizes.buttonRadius),
                           ),
                         ),
                       ),

@@ -66,10 +66,11 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
         SnackBar(content: Text('Failed to save role: $e')),
       );
     } finally {
-      if (!mounted) return;
-      setState(() {
-        _isSaving = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
     }
   }
 
@@ -103,7 +104,8 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
               ),
               const SizedBox(height: 32),
               ElevatedButton(
-                onPressed: _isSaving ? null : () => _saveRoleAndNavigate('customer'),
+                onPressed:
+                    _isSaving ? null : () => _saveRoleAndNavigate('customer'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
@@ -112,7 +114,8 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
               ),
               const SizedBox(height: 12),
               ElevatedButton(
-                onPressed: _isSaving ? null : () => _saveRoleAndNavigate('saathi'),
+                onPressed:
+                    _isSaving ? null : () => _saveRoleAndNavigate('saathi'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.secondary,
                   foregroundColor: Colors.white,

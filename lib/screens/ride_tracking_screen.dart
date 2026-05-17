@@ -6,7 +6,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/booking_models.dart';
-import '../services/booking_service.dart';
 import '../utils/constants.dart';
 import 'ride_complete_screen.dart';
 
@@ -38,10 +37,10 @@ class RideTrackingScreen extends StatefulWidget {
 
 class _RideTrackingScreenState extends State<RideTrackingScreen> {
   GoogleMapController? _mapController;
-  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _bookingSubscription;
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>?
+      _bookingSubscription;
   Timer? _animationTimer;
 
-  LatLng? _saathiPosition;
   LatLng? _animatedSaathiPosition;
   String _status = BookingStatus.accepted;
   String? _otp;
@@ -118,11 +117,9 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
           final newPos = LatLng(saathiLat, saathiLng);
           if (_animatedSaathiPosition == null) {
             _animatedSaathiPosition = newPos;
-            _saathiPosition = newPos;
           } else {
             _animateSaathiMarker(newPos);
           }
-          _saathiPosition = newPos;
         }
 
         _rebuildMapElements();
@@ -151,10 +148,10 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
       }
 
       final t = step / steps;
-      final lat = startPos.latitude +
-          (newPosition.latitude - startPos.latitude) * t;
-      final lng = startPos.longitude +
-          (newPosition.longitude - startPos.longitude) * t;
+      final lat =
+          startPos.latitude + (newPosition.latitude - startPos.latitude) * t;
+      final lng =
+          startPos.longitude + (newPosition.longitude - startPos.longitude) * t;
 
       if (mounted) {
         setState(() {
@@ -262,7 +259,8 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
                   borderRadius: BorderRadius.circular(AppSizes.cardRadius),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   child: Row(
                     children: [
                       Container(
@@ -369,7 +367,8 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
               ),
               if (_fare != null)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: AppColors.primarySurface,
                     borderRadius: BorderRadius.circular(20),

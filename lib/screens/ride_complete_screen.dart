@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../services/booking_service.dart';
@@ -195,7 +194,9 @@ class _RideCompleteScreenState extends State<RideCompleteScreen>
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 6),
                         child: Icon(
-                          _selectedStars >= star ? Icons.star : Icons.star_border,
+                          _selectedStars >= star
+                              ? Icons.star
+                              : Icons.star_border,
                           color: AppColors.secondary,
                           size: 40,
                         ),
@@ -213,9 +214,11 @@ class _RideCompleteScreenState extends State<RideCompleteScreen>
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
-                      minimumSize: const Size.fromHeight(AppSizes.largeButtonHeight),
+                      minimumSize:
+                          const Size.fromHeight(AppSizes.largeButtonHeight),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
+                        borderRadius:
+                            BorderRadius.circular(AppSizes.buttonRadius),
                       ),
                     ),
                     child: _submitting
@@ -229,7 +232,8 @@ class _RideCompleteScreenState extends State<RideCompleteScreen>
                           )
                         : const Text(
                             'રેટિંગ આપો / Submit Rating',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.w700),
                           ),
                   ),
                 ),
@@ -270,11 +274,13 @@ class _RideCompleteScreenState extends State<RideCompleteScreen>
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                   ),
                   style: OutlinedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(AppSizes.largeButtonHeight),
+                    minimumSize:
+                        const Size.fromHeight(AppSizes.largeButtonHeight),
                     side: const BorderSide(color: AppColors.primary),
                     foregroundColor: AppColors.primary,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
+                      borderRadius:
+                          BorderRadius.circular(AppSizes.buttonRadius),
                     ),
                   ),
                 ),

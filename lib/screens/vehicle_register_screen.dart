@@ -102,10 +102,11 @@ class _VehicleRegisterScreenState extends State<VehicleRegisterScreen> {
         ),
       );
     } finally {
-      if (!mounted) return;
-      setState(() {
-        _isLoadingProfile = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoadingProfile = false;
+        });
+      }
     }
   }
 
@@ -209,16 +210,18 @@ class _VehicleRegisterScreenState extends State<VehicleRegisterScreen> {
         ),
       );
     } finally {
-      if (!mounted) return;
-      setState(() {
-        _isSaving = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final villages = LocationService.approvedVillages.map((v) => v.name).toList();
+    final villages =
+        LocationService.approvedVillages.map((v) => v.name).toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -263,7 +266,7 @@ class _VehicleRegisterScreenState extends State<VehicleRegisterScreen> {
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
-                      value: _vehicleType,
+                      initialValue: _vehicleType,
                       decoration: const InputDecoration(
                         labelText: 'વાહન પ્રકાર / Vehicle type',
                       ),
@@ -275,11 +278,12 @@ class _VehicleRegisterScreenState extends State<VehicleRegisterScreen> {
                             ),
                           )
                           .toList(),
-                      onChanged: (value) => setState(() => _vehicleType = value),
+                      onChanged: (value) =>
+                          setState(() => _vehicleType = value),
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
-                      value: _capacity,
+                      initialValue: _capacity,
                       decoration: const InputDecoration(
                         labelText: 'ક્ષમતા / Capacity',
                       ),
@@ -313,12 +317,13 @@ class _VehicleRegisterScreenState extends State<VehicleRegisterScreen> {
                     TextFormField(
                       controller: _vehicleNumberController,
                       decoration: const InputDecoration(
-                        labelText: 'વાહન નંબર (વૈકલ્પિક) / Vehicle number (optional)',
+                        labelText:
+                            'વાહન નંબર (વૈકલ્પિક) / Vehicle number (optional)',
                       ),
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
-                      value: _homeVillage,
+                      initialValue: _homeVillage,
                       decoration: const InputDecoration(
                         labelText: 'ગામ / Home village',
                       ),
@@ -330,7 +335,8 @@ class _VehicleRegisterScreenState extends State<VehicleRegisterScreen> {
                             ),
                           )
                           .toList(),
-                      onChanged: (value) => setState(() => _homeVillage = value),
+                      onChanged: (value) =>
+                          setState(() => _homeVillage = value),
                     ),
                     const SizedBox(height: 20),
                     ElevatedButton(

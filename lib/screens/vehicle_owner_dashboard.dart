@@ -89,14 +89,16 @@ class _VehicleOwnerDashboardState extends State<VehicleOwnerDashboard> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('ઉપલબ્ધતા અપડેટ થઈ નથી / Failed to update availability'),
+          content:
+              Text('ઉપલબ્ધતા અપડેટ થઈ નથી / Failed to update availability'),
         ),
       );
     } finally {
-      if (!mounted) return;
-      setState(() {
-        _isUpdatingAvailability = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isUpdatingAvailability = false;
+        });
+      }
     }
   }
 
@@ -199,10 +201,11 @@ class _VehicleOwnerDashboardState extends State<VehicleOwnerDashboard> {
         ),
       );
     } finally {
-      if (!mounted) return;
-      setState(() {
-        _updatingRequestId = null;
-      });
+      if (mounted) {
+        setState(() {
+          _updatingRequestId = null;
+        });
+      }
     }
   }
 
@@ -220,8 +223,12 @@ class _VehicleOwnerDashboardState extends State<VehicleOwnerDashboard> {
 
         final docs = [...snapshot.data!.docs];
         docs.sort((a, b) {
-          final aTs = (a.data()['timestamp'] as Timestamp?)?.millisecondsSinceEpoch ?? 0;
-          final bTs = (b.data()['timestamp'] as Timestamp?)?.millisecondsSinceEpoch ?? 0;
+          final aTs =
+              (a.data()['timestamp'] as Timestamp?)?.millisecondsSinceEpoch ??
+                  0;
+          final bTs =
+              (b.data()['timestamp'] as Timestamp?)?.millisecondsSinceEpoch ??
+                  0;
           return bTs.compareTo(aTs);
         });
 
@@ -259,7 +266,9 @@ class _VehicleOwnerDashboardState extends State<VehicleOwnerDashboard> {
             final isUpdating = _updatingRequestId == request.id;
 
             String? etaText;
-            if (pickupLat != null && pickupLng != null && ownerGeoPoint != null) {
+            if (pickupLat != null &&
+                pickupLng != null &&
+                ownerGeoPoint != null) {
               final distanceMeters = Geolocator.distanceBetween(
                 ownerGeoPoint.latitude,
                 ownerGeoPoint.longitude,
@@ -283,7 +292,8 @@ class _VehicleOwnerDashboardState extends State<VehicleOwnerDashboard> {
                   children: [
                     const Text(
                       'નવી Haul વિનંતી / New Haul Request',
-                      style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                      style:
+                          TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
                     ),
                     const SizedBox(height: 6),
                     Text('ગંતવ્ય / Destination: $destinationVillage'),
@@ -307,7 +317,7 @@ class _VehicleOwnerDashboardState extends State<VehicleOwnerDashboard> {
                                 : () => _updateRequestStatus(
                                       requestId: request.id,
                                       accept: true,
-                                  saathiName: ownerName,
+                                      saathiName: ownerName,
                                     ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.success,
@@ -324,7 +334,7 @@ class _VehicleOwnerDashboardState extends State<VehicleOwnerDashboard> {
                                 : () => _updateRequestStatus(
                                       requestId: request.id,
                                       accept: false,
-                                  saathiName: ownerName,
+                                      saathiName: ownerName,
                                     ),
                             child: const Text(
                               'Reject',
@@ -357,7 +367,8 @@ class _VehicleOwnerDashboardState extends State<VehicleOwnerDashboard> {
               onPressed: widget.onSwitchToSearch,
               child: const Text(
                 'શોધો / Search',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+                style:
+                    TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
               ),
             ),
         ],
@@ -380,7 +391,8 @@ class _VehicleOwnerDashboardState extends State<VehicleOwnerDashboard> {
           }
 
           final isAvailable = data['isAvailable'] as bool? ?? false;
-          final vehicleType = _vehicleTypeLabel((data['vehicleType'] ?? '').toString());
+          final vehicleType =
+              _vehicleTypeLabel((data['vehicleType'] ?? '').toString());
           final capacity = (data['capacity'] ?? '').toString();
           final ratePerHour = (data['ratePerHour'] ?? 0).toString();
           final position = data['position'];
@@ -404,7 +416,8 @@ class _VehicleOwnerDashboardState extends State<VehicleOwnerDashboard> {
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
-                    side: BorderSide(color: Colors.black.withValues(alpha: 0.08)),
+                    side:
+                        BorderSide(color: Colors.black.withValues(alpha: 0.08)),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(14),
@@ -423,9 +436,7 @@ class _VehicleOwnerDashboardState extends State<VehicleOwnerDashboard> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                isAvailable
-                                    ? 'હા, બુકિંગ મળી શકે'
-                                    : 'ઑફલાઇન',
+                                isAvailable ? 'હા, બુકિંગ મળી શકે' : 'ઑફલાઇન',
                                 style: const TextStyle(
                                   color: AppColors.textSecondary,
                                   fontWeight: FontWeight.w600,
@@ -438,7 +449,7 @@ class _VehicleOwnerDashboardState extends State<VehicleOwnerDashboard> {
                           ignoring: _isUpdatingAvailability,
                           child: Switch(
                             value: isAvailable,
-                            activeColor: _orange,
+                            activeThumbColor: _orange,
                             onChanged: _updateAvailability,
                           ),
                         ),
@@ -459,7 +470,8 @@ class _VehicleOwnerDashboardState extends State<VehicleOwnerDashboard> {
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
-                    side: BorderSide(color: Colors.black.withValues(alpha: 0.08)),
+                    side:
+                        BorderSide(color: Colors.black.withValues(alpha: 0.08)),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(14),
